@@ -11,12 +11,12 @@ config_version=5
 [application]
 
 config/name="Echoes of the Forgotten City"
+config/version="0.1.0"
 run/main_scene="res://scenes/title.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
-config/icon="res://icons/icon.png"
-config/version="0.1.0"
 boot_splash/bg_color=Color(0.027451, 0.035294, 0.0705882, 1)
 boot_splash/image="res://icons/boot_splash.png"
+config/icon="res://icons/icon.png"
 boot_splash/minimum_display_time=1500
 
 [autoload]
