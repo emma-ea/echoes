@@ -70,6 +70,9 @@ func _ready() -> void:
 	main._arrival_x = 1500.0
 	GameState.go_to("street")
 	await _shoot("11_street_lit", 180)
+	main._close_all_modals()
+	main._open_modal(main.EndScreen.new())
+	await _shoot("12_end_of_demo")
 
 	DirAccess.remove_absolute(GameState.save_path)
 	await Music.shut_down()

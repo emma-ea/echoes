@@ -287,6 +287,27 @@ func _test_world_and_ui() -> void:
 			GameState.try_puzzle("valve_dials", GameState.vars.valve_code)
 	_expect(world.room.ambient_color() == Color.html("#e4d6bc"), "valve room ambient switches once lit")
 
+	# The end screen appears once, a few seconds after the finale, and never again.
+	Engine.time_scale = 8.0
+	await _wait_until(func(): return main._overlays.get_child_count() == 1, 2000)
+	Engine.time_scale = 1.0
+	var end_screen = main._overlays.get_child(0) if main._overlays.get_child_count() == 1 else null
+	_expect(end_screen != null and end_screen.get_script() == main.EndScreen, "the end-of-demo screen appears after the finale")
+	_expect(GameState.check("flag:seen_demo_end"), "the end screen is remembered as seen")
+	main._close_all_modals()
+	Engine.time_scale = 8.0
+	for _i in 120:
+		await get_tree().process_frame
+	Engine.time_scale = 1.0
+	_expect(main._overlays.get_child_count() == 0, "the end screen doesn't come back")
+
+	# Notches: the top bar and tip card move in from the edges.
+	main.apply_safe_insets(60, 10, 30)
+	_expect(main._bar.get_theme_constant("margin_left") == 84 and main._bar.get_theme_constant("margin_right") == 54
+		and main._bar.get_theme_constant("margin_top") == 34, "the top bar is padded for notches")
+	_expect(main._tip_card.position == Vector2(84, 138), "the tip card is padded for notches")
+	main.apply_safe_insets(0, 0, 0)
+
 	main._open_chronicle()
 	await get_tree().process_frame
 	_expect(main._overlays.get_child_count() == 1, "chronicle opens as a modal")
@@ -320,6 +341,8 @@ func _test_title_and_intro() -> void:
 	for button in title._menu.get_children():
 		labels.append(button.text)
 	_expect(labels[0] == "Continue" and "New Game" in labels, "title menu offers Continue and New Game: %s" % [labels])
+	var build_labels: Array = title._ui.get_children().filter(func(c): return c is Label and c.text == "0.1.0 playtest")
+	_expect(build_labels.size() == 1, "the title screen shows the build: 0.1.0 playtest")
 	title.queue_free()
 	Music.set_override("")
 

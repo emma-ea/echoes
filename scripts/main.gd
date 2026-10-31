@@ -8,6 +8,7 @@ const EchoPopup := preload("res://scripts/ui/echo_popup.gd")
 const ChronicleBoard := preload("res://scripts/ui/chronicle_board.gd")
 const DialogueBox := preload("res://scripts/ui/dialogue_box.gd")
 const PauseMenu := preload("res://scripts/ui/pause_menu.gd")
+const EndScreen := preload("res://scripts/ui/end_screen.gd")
 const Fonts := preload("res://scripts/ui/fonts.gd")
 const PUZZLE_SCREENS := {
 	"dial_code": preload("res://scripts/ui/dial_puzzle.gd"),
@@ -15,6 +16,9 @@ const PUZZLE_SCREENS := {
 
 const TOAST_SECONDS := 3.5
 const FADE_SECONDS := 0.3
+const HUD_MARGIN := 24.0
+const TIP_TOP := 128.0
+const DEMO_END_DELAY := 3.0  # seconds back in the world (watching the lamps come on) before the end screen
 const OBJECTIVE_COLOR := Color(1.0, 0.85, 0.55)
 
 var world: World
@@ -35,6 +39,9 @@ var _step_id := ""
 var _tip_dismissed := false
 var _highlight_chronicle := false
 var _time := 0.0
+var _bar: MarginContainer
+var _safe_area_timer := 0.0
+var _demo_end_wait := -1.0
 
 
 func _ready() -> void:
@@ -83,6 +90,50 @@ func _process(delta: float) -> void:
 	# Gently pulse the Chronicle button while the tutorial is pointing at it.
 	var pulse := 0.5 + 0.5 * sin(_time * 4.0) if _highlight_chronicle else 0.0
 	_chronicle_button.modulate = Color.WHITE.lerp(Color(1.5, 1.25, 0.7), pulse)
+	# Re-check twice a second: turning the phone round moves the notch to the other side.
+	_safe_area_timer -= delta
+	if _safe_area_timer <= 0.0:
+		_safe_area_timer = 0.5
+		_update_safe_area()
+	_check_demo_end(delta)
+
+
+# Once the chapter is finished, show the end screen (once), after a moment back in the world.
+func _check_demo_end(delta: float) -> void:
+	if ContentDB.demo_end.is_empty() or GameState.flags.has("seen_demo_end"):
+		return
+	if not GameState.check(ContentDB.demo_end.get("if", "")):
+		return
+	if _overlays.get_child_count() > 0 or _transitioning or _demo_end_wait < 0.0:
+		_demo_end_wait = DEMO_END_DELAY
+		return
+	_demo_end_wait -= delta
+	if _demo_end_wait <= 0.0:
+		GameState.set_flags(["seen_demo_end"])
+		_open_modal(EndScreen.new())
+
+
+func _update_safe_area() -> void:
+	if not OS.has_feature("mobile"):
+		return  # on desktop the "safe area" is the monitor's, not the window's
+	var window := Vector2(DisplayServer.window_get_size())
+	if window.x <= 0.0:
+		return
+	var safe := Rect2(DisplayServer.get_display_safe_area())
+	safe.position -= Vector2(DisplayServer.window_get_position())
+	var to_ui := _ui.get_viewport_rect().size.x / window.x  # screen pixels -> UI units
+	apply_safe_insets(safe.position.x * to_ui, safe.position.y * to_ui, (window.x - safe.end.x) * to_ui)
+
+
+## Pads the top bar (and the tip card under it) so notches and camera cutouts don't cover them.
+func apply_safe_insets(left: float, top: float, right: float) -> void:
+	left = maxf(left, 0.0)
+	top = maxf(top, 0.0)
+	right = maxf(right, 0.0)
+	_bar.add_theme_constant_override("margin_left", int(HUD_MARGIN + left))
+	_bar.add_theme_constant_override("margin_top", int(HUD_MARGIN + top))
+	_bar.add_theme_constant_override("margin_right", int(HUD_MARGIN + right))
+	_tip_card.position = Vector2(HUD_MARGIN + left, TIP_TOP + top)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -220,10 +271,11 @@ func show_toast(text: String) -> void:
 
 func _build_hud() -> void:
 	var bar := MarginContainer.new()
+	_bar = bar
 	bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for side in ["left", "right", "top"]:
-		bar.add_theme_constant_override("margin_" + side, 24)
+		bar.add_theme_constant_override("margin_" + side, int(HUD_MARGIN))
 	_ui.add_child(bar)
 
 	var row := HBoxContainer.new()
@@ -268,7 +320,7 @@ func _outlined_label(font_size: int) -> Label:
 
 func _build_tip_card() -> void:
 	_tip_card = PanelContainer.new()
-	_tip_card.position = Vector2(24, 128)
+	_tip_card.position = Vector2(HUD_MARGIN, TIP_TOP)
 	_tip_card.custom_minimum_size = Vector2(500, 0)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.05, 0.06, 0.1, 0.88)

@@ -14,7 +14,7 @@ const PROP_TYPES: Array[String] = [
 ]
 const ROOM_STYLES: Array[String] = ["interior", "street"]
 # Flags set by the UI rather than by content (e.g. the tutorial's "open your Chronicle").
-const UI_FLAGS: Array[String] = ["opened_chronicle"]
+const UI_FLAGS: Array[String] = ["opened_chronicle", "seen_demo_end"]
 const MIN_ROOM_WIDTH := 1600
 # NPC looks and how tall each figure is (sizes the tap area around them).
 const NPC_LOOKS := {"porter": 185.0, "child": 125.0}
@@ -25,6 +25,7 @@ var intro: Array = []
 var title_music: String = ""
 var start_echoes: Array = []
 var quest_steps: Array = []
+var demo_end: Dictionary = {}
 var start_scene: String = ""
 var variables: Dictionary = {}
 var scenes: Dictionary = {}
@@ -45,6 +46,7 @@ func _init() -> void:
 	intro = world.get("intro", [])
 	title_music = world.get("title_music", "")
 	start_echoes = world.get("start_echoes", [])
+	demo_end = world.get("demo_end", {})
 	start_scene = world.get("start_scene", "")
 	variables = world.get("variables", {})
 	music = world.get("music", [])
@@ -109,6 +111,13 @@ func validate() -> Array[String]:
 			problems.append("start_echoes: unknown echo '%s'" % echo_id)
 	if intro.is_empty():
 		problems.append("world.json has no intro lines")
+	if not demo_end.is_empty():
+		_check_condition(demo_end.get("if", ""), "demo_end", flags_set, problems)
+		if str(demo_end.get("title", "")).is_empty() or str(demo_end.get("text", "")).is_empty():
+			problems.append("demo_end needs a title and text")
+		var url := str(demo_end.get("feedback_url", ""))
+		if not url.is_empty() and not url.begins_with("https://"):
+			problems.append("demo_end feedback_url should be an https:// link")
 	if not ResourceLoader.exists(title_music):
 		problems.append("title_music '%s' not found" % title_music)
 

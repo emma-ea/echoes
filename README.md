@@ -61,6 +61,7 @@ data/               All authored content (edit these to make the game)
   npcs.json         Ghost NPCs: name, look, colour, which dialogue they use
   dialogue.json     Conversations: lines, choices, progress-based branches
 audio/              Music loops (.ogg)
+icons/              Launcher icons (project, Android adaptive, Play Store, iOS 1024)
 autoload/
   content_db.gd     Loads + validates data/ (read-only at runtime)
   game_state.gd     The player's run: rules, conditions, dialogue branching, local save
@@ -84,6 +85,7 @@ tools/
   smoke_test.*      Headless test (content, rules, save, walking, every screen)
   screenshots.*     Renders key moments to PNG
   make_music.gd     Synthesises the music loops
+  make_icon.*       Renders the launcher icons and boot splash into icons/ (needs a window, not --headless)
 art/                Final art goes here
 ```
 
@@ -135,6 +137,9 @@ The flag `opened_chronicle` is set by the game itself when the Chronicle is open
 
 **chronicle.json → events** can have `visible_if` to stay off the Chronicle until the story reaches them.
 
+**world.json → demo_end**: `{ "if": "puzzle:valve_dials", "title", "text", "feedback_url": "https://..." }`.
+Shown once, a few seconds after its condition passes. The feedback button only appears when `feedback_url` is set.
+
 **world.json → music**: `[{ "track": "res://audio/x.ogg", "if": "flag:..." }, ...]`. The first entry whose
 `if` passes plays; changes crossfade over 3 s. Drop in composed `.ogg` files any time.
 
@@ -170,6 +175,8 @@ room (`"npcs"` above) makes it a tappable "talk" hotspot automatically.
 1. Add the type name to `PUZZLE_TYPES` in `autoload/content_db.gd` (plus any validation it needs).
 2. Write a screen extending `res://scripts/ui/modal.gd` with a `setup(puzzle_id)` method that calls `GameState.try_puzzle(id, answer)`.
 3. Register it in `PUZZLE_SCREENS` in `scripts/main.gd`.
+
+Releasing a playtest build: see [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 
 ## Not in the slice yet
 

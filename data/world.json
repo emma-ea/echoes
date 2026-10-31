@@ -10,6 +10,12 @@
 	"It asked you to come to Veyl, to the Lamplighters' Guildhall. It asked you to bring a lantern.",
     "So you did."
   ],
+  "demo_end": {
+	"if": "puzzle:valve_dials",
+	"title": "End of Chapter One",
+	"text": "The lamps of Veyl are burning again. But where did its people go, and what was Ilsa Varn hiding them from?\n\nThank you for playing this early build. Your thoughts will shape what comes next.",
+	"feedback_url": ""
+  },
   "title_music": "res://audio/forgotten_city.ogg",
   "music": [
 	{ "track": "res://audio/lamps_lit.ogg", "if": "flag:valve_opened" },

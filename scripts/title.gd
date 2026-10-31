@@ -3,6 +3,7 @@ extends Node
 
 const TitleBackdrop := preload("res://scripts/title_backdrop.gd")
 const ConfirmDialog := preload("res://scripts/ui/confirm_dialog.gd")
+const BuildInfo := preload("res://scripts/ui/build_info.gd")
 const Fonts := preload("res://scripts/ui/fonts.gd")
 const GAME_SCENE := "res://scenes/main.tscn"
 const INTRO_SCENE := "res://scenes/intro.tscn"
@@ -62,6 +63,20 @@ func _ready() -> void:
 	if not OS.has_feature("mobile"):
 		_add_menu_button("Quit", _quit)
 	_menu.get_child(0).call_deferred("grab_focus")
+
+	# Which build this is, so playtest feedback can say.
+	var build := Label.new()
+	build.text = BuildInfo.label()
+	build.add_theme_font_size_override("font_size", 18)
+	build.modulate = Color(1, 1, 1, 0.45)
+	build.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	build.offset_left = -24
+	build.offset_right = -24
+	build.offset_top = -16
+	build.offset_bottom = -16
+	build.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	build.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_ui.add_child(build)
 
 	_ui.modulate.a = 0.0
 	create_tween().tween_property(_ui, "modulate:a", 1.0, 1.5)
