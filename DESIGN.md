@@ -10,6 +10,19 @@ A city was abandoned overnight, and no one remembers why. You explore its empty 
 
 Mystery and adventure fans who like *Return of the Obra Dinn*, *Her Story*, *Gorogoa* and *The Room*. They want deduction that feels earned, not hand-holding. Play happens in 10–20 minute mobile sessions.
 
+## Opening and Prelude
+
+- **Title screen**: the dead city at night, one lit window in the guildhall tower. Continue / New Game /
+  Music / Quit.
+- **Intro narration**: a hundred years ago Veyl's lamps went out and its people vanished. A letter,
+  signed only "P.", has asked you to come to the Lamplighters' Guildhall with a lantern.
+- **Prelude (Lantern Street)**: a short guided quest outside the guildhall. Each step teaches one thing,
+  with an objective line and a tip card: walk, read an Echo (a notice board), open the Chronicle,
+  solve a two-slot practice deduction (who sent the letter, and from where), go through a door, talk
+  to the ghost waiting inside (Pell, who wrote the letter). The night door only opens once the
+  practice deduction is solved, so the core mechanic is learned before the real mystery starts.
+- Objectives continue through the chapter without tips; a pause menu is always one tap away.
+
 ## Core Loop
 
 1. **Explore:** guide a lantern-carrying explorer through dark side-view rooms. Tap to walk, tap objects to walk over and use them (landscape).

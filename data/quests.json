@@ -1,0 +1,30 @@
+{
+  "steps": [
+    { "id": "walk", "objective": "Walk up the street toward the Guildhall.",
+      "tip": "Tap the ground to walk there. On a keyboard, A/D or the arrow keys work too.",
+      "done_if": "flag:walked_street" },
+    { "id": "notice", "objective": "Read the notice on the board.",
+      "tip": "Glowing markers show things you can use. Tap one and you'll walk over to it. Objects that hold a memory of the past are called Echoes.",
+      "done_if": "echo:echo_notice" },
+    { "id": "chronicle", "objective": "Open your Chronicle.",
+      "tip": "What you learn from Echoes is kept in your Chronicle (top right). The letter that brought you here is already in it.",
+      "highlight": "chronicle",
+      "done_if": "flag:opened_chronicle" },
+    { "id": "summons", "objective": "Work out who sent you the letter.",
+      "tip": "In the Chronicle, choose Who and Where for the event, using what your Echoes say. It's only accepted when every part is right, so compare them carefully.",
+      "done_if": "discovery:the_summons" },
+    { "id": "enter", "objective": "Knock at the night door and go inside.",
+      "tip": "Doors and passages lead to new places. Now that you know who's waiting, the night door will open.",
+      "done_if": "visited:foyer" },
+    { "id": "meet", "objective": "Find whoever is waiting inside.",
+      "tip": "Tap people to talk to them. If you're ever unsure what to do next, ask. They often know where to look.",
+      "done_if": "flag:met_pell" },
+    { "id": "search", "objective": "Search the Guildhall for Echoes of the night the lamps went out.",
+      "done_if": ["echo:echo_letter", "echo:echo_drawing", "echo:echo_logbook"] },
+    { "id": "deduce", "objective": "Set down in your Chronicle what happened that night.",
+      "done_if": "discovery:lamps_out" },
+    { "id": "valve", "objective": "Reopen the great valve.",
+      "done_if": "puzzle:valve_dials" },
+    { "id": "end", "objective": "The lamps are lit. Explore, or see what Pell and Wren have to say." }
+  ]
+}

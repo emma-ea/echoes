@@ -4,6 +4,7 @@ extends Node2D
 
 const Prop := preload("res://scripts/world/prop.gd")
 const Ghost := preload("res://scripts/world/ghost.gd")
+const Skyline := preload("res://scripts/world/skyline.gd")
 
 const ROOM_HEIGHT := 720.0
 const LIGHT_FADE_SECONDS := 2.5
@@ -15,10 +16,12 @@ var floor_y := 600.0
 var walk_min := 80.0
 var walk_max := 1520.0
 var spawn_x := 80.0
+var style := "interior"
 
 var ghosts: Array = []
 
 var _props: Array = []
+var _backdrop_layers: Array = []
 var _wall := Color("5b5262")
 var _trim := Color("6b5a5e")
 var _floor := Color("3b3230")
@@ -33,11 +36,14 @@ func setup(p_scene_id: String) -> void:
 	walk_min = float(walk[0])
 	walk_max = float(walk[1])
 	spawn_x = float(data.get("spawn_x", walk_min))
+	style = data.get("style", "interior")
 	var palette: Dictionary = data.get("palette", {})
 	_wall = _color(palette.get("wall"), _wall)
 	_trim = _color(palette.get("trim"), _trim)
 	_floor = _color(palette.get("floor"), _floor)
 
+	if style == "street":
+		_add_backdrop()
 	for prop_data in data.get("props", []):
 		var prop := Prop.new()
 		prop.setup(prop_data)
@@ -52,6 +58,40 @@ func setup(p_scene_id: String) -> void:
 	_add_dust()
 	refresh_state(true)
 	queue_redraw()
+
+
+# Outdoors: sky, far rooftops and near rooftops, each scrolling slower than the street.
+func _add_backdrop() -> void:
+	var layers := [
+		{"kind": "sky", "depth": 0.05, "seed": 11},
+		{"kind": "buildings", "depth": 0.2, "seed": 12, "color": Color("161a2a"), "min": 160.0, "max": 380.0},
+		{"kind": "buildings", "depth": 0.45, "seed": 13, "color": Color("0d1019"), "min": 90.0, "max": 260.0},
+	]
+	for spec in layers:
+		var layer := Skyline.new()
+		layer.kind = spec.kind
+		layer.depth = spec.depth
+		layer.seed_value = spec.seed
+		layer.base_y = floor_y
+		layer.from_x = -800.0
+		layer.to_x = width * spec.depth + 800.0
+		if spec.has("color"):
+			layer.color = spec.color
+			layer.min_height = spec.min
+			layer.max_height = spec.max
+		add_child(layer)
+		_backdrop_layers.append(layer)
+
+
+func _process(_delta: float) -> void:
+	if _backdrop_layers.is_empty():
+		return
+	var camera := get_viewport().get_camera_2d()
+	if camera == null:
+		return
+	var center_x := camera.get_screen_center_position().x
+	for layer in _backdrop_layers:
+		layer.position.x = center_x * (1.0 - layer.depth)
 
 
 func refresh_state(instant: bool = false) -> void:
@@ -103,6 +143,35 @@ func _add_dust() -> void:
 
 # Drawn wider and taller than the room so wide or tall screens never see past the edges.
 func _draw() -> void:
+	if style == "street":
+		_draw_street()
+	else:
+		_draw_interior()
+
+
+func _draw_street() -> void:
+	var left := -400.0
+	var full := width + 800.0
+	Prop.draw_gradient_rect(self, Rect2(left, -400, full, floor_y + 400), Color("04060d"), Color("23213a"))
+	# Cobblestones, rows getting taller toward the viewer.
+	draw_rect(Rect2(left, floor_y, full, ROOM_HEIGHT - floor_y + 400), _floor.darkened(0.35))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(scene_id)
+	var y := floor_y + 4
+	var row_h := 12.0
+	while y < ROOM_HEIGHT + 40:
+		var x := left - rng.randf_range(0, 30)
+		while x < left + full:
+			var w := rng.randf_range(1.6, 2.6) * row_h
+			draw_rect(Rect2(x + 2, y + 2, w - 4, row_h - 3), _floor.darkened(rng.randf_range(0.0, 0.25)))
+			x += w
+		y += row_h
+		row_h *= 1.3
+	# Kerb along the street's edge.
+	draw_rect(Rect2(left, floor_y - 6, full, 10), _floor.lightened(0.1))
+
+
+func _draw_interior() -> void:
 	var left := -400.0
 	var full := width + 800.0
 	Prop.draw_gradient_rect(self, Rect2(left, -400, full, floor_y + 400), _wall.darkened(0.55), _wall)

@@ -5,6 +5,8 @@ extends Control
 
 signal closed
 
+const Fonts := preload("res://scripts/ui/fonts.gd")
+
 const CHARS_PER_SECOND := 50.0
 
 var _dialogue_id := ""
@@ -43,7 +45,8 @@ func _init() -> void:
 	_panel.add_child(box)
 
 	_name_label = Label.new()
-	_name_label.add_theme_font_size_override("font_size", 22)
+	_name_label.add_theme_font_size_override("font_size", 26)
+	_name_label.add_theme_font_override("font", Fonts.DISPLAY)
 	box.add_child(_name_label)
 
 	_text_label = Label.new()

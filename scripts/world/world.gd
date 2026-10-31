@@ -126,9 +126,21 @@ func _process(_delta: float) -> void:
 		_pending = {}
 	for ghost in room.ghosts:
 		ghost.watch_x = player.position.x
+	_check_triggers()
 	var nearest = _nearest_marker()
 	for marker in _markers:
 		marker.near = input_enabled and marker == nearest  # no labels behind open dialogs
+
+
+# Walking into a trigger's x range sets its flags (e.g. the tutorial's "you've walked the street").
+func _check_triggers() -> void:
+	for trigger in room.data.get("triggers", []):
+		var span: Array = trigger.get("x", [0, 0])
+		if player.position.x < float(span[0]) or player.position.x > float(span[1]):
+			continue
+		var to_set: Array = trigger.get("set_flags", [])
+		if not to_set.all(func(flag): return GameState.flags.has(flag)):
+			GameState.set_flags(to_set)
 
 
 ## Brightens (or dims) the NPC while a conversation with them is open.

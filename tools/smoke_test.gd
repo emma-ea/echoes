@@ -15,7 +15,9 @@ func _ready() -> void:
 	_test_save_round_trip()
 	_test_dialogue()
 	_test_music()
+	_test_quest_steps()
 	await _test_world_and_ui()
+	await _test_title_and_intro()
 
 	DirAccess.remove_absolute(GameState.save_path)
 	await Music.shut_down()
@@ -100,6 +102,7 @@ func _test_save_round_trip() -> void:
 	_expect(GameState.echoes == before.echoes, "echoes survive save/load")
 	_expect(GameState.discoveries == before.discoveries, "discoveries survive save/load")
 	_expect(GameState.solved_puzzles == before.puzzles, "puzzles survive save/load")
+	_expect(GameState.visited == [ContentDB.start_scene], "visited rooms survive save/load")
 
 
 func _test_dialogue() -> void:
@@ -142,6 +145,56 @@ func _test_music() -> void:
 	GameState.try_puzzle("valve_dials", GameState.vars.valve_code)
 	_expect(Music.current_track.ends_with("lamps_lit.ogg"), "music changes once the lamps are lit, got '%s'" % Music.current_track)
 
+	# Volume 1-5: each level louder than the last, the default unchanged, out-of-range clamped, saved.
+	var saved_volume: int = Music.volume
+	var levels: Array = []
+	for level in range(1, 6):
+		Music.set_volume(level)
+		levels.append(Music.target_db())
+	_expect(levels[0] < levels[1] and levels[1] < levels[2] and levels[2] < levels[3] and levels[3] < levels[4], "each volume level is louder: %s" % [levels])
+	_expect(is_equal_approx(levels[2], Music.BASE_VOLUME_DB), "volume 3 keeps the original loudness")
+	Music.set_volume(9)
+	_expect(Music.volume == 5, "volume is capped at 5")
+	Music.set_volume(0)
+	_expect(Music.volume == 1, "volume never goes below 1")
+	var settings := ConfigFile.new()
+	settings.load(Music.SETTINGS_PATH)
+	_expect(settings.get_value("audio", "music_volume") == 1, "volume is saved to settings")
+	Music.set_volume(saved_volume)
+
+
+func _test_quest_steps() -> void:
+	GameState.new_game(8)
+	var expected := ["walk", "notice", "chronicle", "summons", "enter", "meet", "search", "deduce", "valve", "end"]
+	var seen: Array = [GameState.current_step().get("id")]
+	_expect(GameState.has_echo("echo_summons"), "you arrive carrying the letter")
+	_expect(not GameState.is_event_visible("lamps_out"), "the main mystery is hidden during the prelude")
+	GameState.set_flags(["walked_street"])
+	seen.append(GameState.current_step().get("id"))
+	GameState.collect_echo("echo_notice")
+	seen.append(GameState.current_step().get("id"))
+	GameState.set_flags(["opened_chronicle"])
+	seen.append(GameState.current_step().get("id"))
+	GameState.place_term("the_summons", "who", "pell")
+	GameState.place_term("the_summons", "where", "guildhall")
+	_expect(GameState.try_resolve("the_summons"), "the summons resolves with Pell + Guildhall")
+	seen.append(GameState.current_step().get("id"))
+	GameState.go_to("foyer")
+	seen.append(GameState.current_step().get("id"))
+	GameState.enter_dialogue_node(GameState.resolve_dialogue("pell", "start"))
+	seen.append(GameState.current_step().get("id"))
+	_expect(GameState.is_event_visible("lamps_out"), "the main mystery appears after meeting Pell")
+	for echo_id in ["echo_letter", "echo_drawing", "echo_logbook"]:
+		GameState.collect_echo(echo_id)
+	seen.append(GameState.current_step().get("id"))
+	for slot in ["who", "what", "when"]:
+		GameState.place_term("lamps_out", slot, ContentDB.events.lamps_out.slots[slot])
+	GameState.try_resolve("lamps_out")
+	seen.append(GameState.current_step().get("id"))
+	GameState.try_puzzle("valve_dials", GameState.vars.valve_code)
+	seen.append(GameState.current_step().get("id"))
+	_expect(seen == expected, "objectives advance in order: %s" % [seen])
+
 
 func _test_world_and_ui() -> void:
 	Engine.time_scale = 8.0  # walk faster so the test doesn't take long
@@ -150,8 +203,35 @@ func _test_world_and_ui() -> void:
 	add_child(main)
 	await get_tree().process_frame
 	var world = main.world
-	_expect(world.current_scene_id == ContentDB.start_scene, "world loads the start room")
+	_expect(world.current_scene_id == "street", "a new game starts on the street")
 	_expect(is_equal_approx(world.player.position.x, world.room.spawn_x), "explorer starts at spawn_x")
+	_expect(main._step_id == "walk" and main._tip_card.visible, "first objective and tip are shown")
+
+	# Prelude: walking to the notice board passes the trigger and reads the notice on arrival.
+	world.walk_to_hotspot(_find_hotspot("street", "echo", "echo_notice"))
+	await _wait_until(func(): return GameState.has_echo("echo_notice"), 3000)
+	_expect(GameState.check("flag:walked_street"), "walking up the street completes the first step")
+	_expect(GameState.has_echo("echo_notice") and main._overlays.get_child_count() == 1, "the notice opens on arrival")
+	_expect(main._step_id == "chronicle" and main._highlight_chronicle, "next: open the Chronicle (button pulses)")
+	main._close_all_modals()
+	main._open_chronicle()
+	await get_tree().process_frame
+	_expect(main._step_id == "summons", "opening the Chronicle completes that step")
+	main._close_all_modals()
+
+	# The night door turns you away until the summons is worked out.
+	var night_door := _find_hotspot("street", "goto", "foyer")
+	main._interact(night_door)
+	await get_tree().process_frame
+	_expect(GameState.current_scene == "street" and main._toast.visible, "the locked night door explains itself")
+	GameState.place_term("the_summons", "who", "pell")
+	GameState.place_term("the_summons", "where", "guildhall")
+	GameState.try_resolve("the_summons")
+	world.walk_to_hotspot(night_door)
+	await _wait_until(func(): return GameState.current_scene == "foyer" and not main._transitioning, 3000)
+	_expect(GameState.current_scene == "foyer", "the night door opens once you know who sent for you")
+	_expect(is_equal_approx(world.player.position.x, float(night_door.arrive_x)), "explorer arrives at arrive_x")
+	_expect(main._step_id == "meet", "next: find whoever is waiting")
 
 	# Walk up to Pell; arriving opens the conversation and makes him glow.
 	var pell := _find_hotspot("foyer", "talk", "pell")
@@ -171,6 +251,7 @@ func _test_world_and_ui() -> void:
 	main._close_all_modals()
 	await get_tree().process_frame
 	_expect(not ghost.talking, "Pell stops glowing when the conversation closes")
+	_expect(main._step_id == "search" and not main._tip_card.visible, "the prelude is over; no more tips")
 
 	# Walk to the desk as if it were tapped; arriving should open the letter.
 	var desk := _find_hotspot("foyer", "echo", "echo_letter")
@@ -210,11 +291,48 @@ func _test_world_and_ui() -> void:
 	await get_tree().process_frame
 	_expect(main._overlays.get_child_count() == 1, "chronicle opens as a modal")
 	main._close_all_modals()
-	main._start_new_run()
+
+	# Pause menu: pauses the world, and closing it resumes.
+	main._open_pause()
 	await get_tree().process_frame
-	_expect(GameState.echoes.is_empty(), "new run clears echoes")
-	_expect(world.current_scene_id == ContentDB.start_scene, "new run returns to the start room")
+	_expect(get_tree().paused and main._overlays.get_child_count() == 1, "the menu pauses the game")
+	var saved_volume: int = Music.volume
+	var volume_control = main._overlays.get_child(0).content.get_children().filter(func(c): return c.has_method("_set_volume"))
+	_expect(volume_control.size() == 1, "the pause menu has a music volume control")
+	if volume_control.size() == 1:
+		Music.set_volume(2)
+		volume_control[0]._set_volume(Music.volume + 1)
+		_expect(Music.volume == 3 and volume_control[0]._value_label.text == "3", "+ raises the volume and the display follows")
+	Music.set_volume(saved_volume)
+	main._overlays.get_child(0).close()
+	await get_tree().process_frame
+	_expect(not get_tree().paused, "closing the menu resumes the game")
 	main.queue_free()
+	await get_tree().process_frame
+
+
+func _test_title_and_intro() -> void:
+	var title: Node = load("res://scenes/title.tscn").instantiate()
+	add_child(title)
+	await get_tree().process_frame
+	_expect(Music.current_track == ContentDB.title_music, "the title screen plays the title theme")
+	var labels: Array = []
+	for button in title._menu.get_children():
+		labels.append(button.text)
+	_expect(labels[0] == "Continue" and "New Game" in labels, "title menu offers Continue and New Game: %s" % [labels])
+	title.queue_free()
+	Music.set_override("")
+
+	var intro: Node = load("res://scenes/intro.tscn").instantiate()
+	intro.change_scene_on_finish = false
+	var finished := [false]
+	intro.finished.connect(func(): finished[0] = true)
+	add_child(intro)
+	for _i in ContentDB.intro.size() * 2 + 1:
+		intro.advance()
+	_expect(finished[0], "tapping through the intro finishes it")
+	intro.queue_free()
+	await get_tree().process_frame
 
 
 func _find_hotspot(scene_id: String, action: String, value: String) -> Dictionary:

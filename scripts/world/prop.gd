@@ -4,6 +4,7 @@ extends Node2D
 ## Props with "lit_if" get a light, and `lit` (0..1) fades their glow in and out.
 
 const Lighting := preload("res://scripts/world/lighting.gd")
+const Fonts := preload("res://scripts/ui/fonts.gd")
 
 const WARM := Color("ffcf7a")
 const WOOD := Color("6b4a34")
@@ -19,7 +20,10 @@ const LIGHTS := {
 	"sconce": [Vector2(0.5, 0.35), 340.0, 1.0],
 	"valve": [Vector2(0.5, 0.45), 460.0, 0.9],
 	"window": [Vector2(0.5, 0.5), 320.0, 0.45],
+	"street_lamp": [Vector2(0.5, 0.06), 420.0, 1.1],
+	"facade": [Vector2(0.5, 0.4), 420.0, 0.6],
 }
+const IRON := Color("2c2c34")
 
 var data: Dictionary = {}
 var size := Vector2.ZERO
@@ -82,6 +86,9 @@ func _draw() -> void:
 		"banner": _draw_banner()
 		"shelf": _draw_shelf()
 		"cobweb": _draw_cobweb()
+		"street_lamp": _draw_street_lamp()
+		"facade": _draw_facade()
+		"notice_board": _draw_notice_board()
 		"sprite":
 			if _texture:
 				draw_texture_rect(_texture, Rect2(Vector2.ZERO, size), false)
@@ -372,3 +379,76 @@ func _draw_cobweb() -> void:
 			var a := PI * 0.5 * i / 5.0
 			points.append(Vector2(cos(a), sin(a)) * radius * ring / 5.0 * (0.92 if i % 2 else 1.0))
 		draw_polyline(points, web, 1.0)
+
+
+func _draw_street_lamp() -> void:
+	var cx := size.x / 2
+	draw_rect(Rect2(cx - 4, 40, 8, size.y - 40), IRON)
+	draw_rect(Rect2(cx - 12, size.y - 22, 24, 22), IRON)
+	draw_line(Vector2(cx - 16, 48), Vector2(cx + 16, 48), IRON, 4)
+	var head := PackedVector2Array([Vector2(cx - 14, 6), Vector2(cx + 14, 6), Vector2(cx + 10, 38), Vector2(cx - 10, 38)])
+	if lit > 0.0:
+		draw_circle(Vector2(cx, 22), 46, Color(WARM, 0.22 * lit))
+	draw_colored_polygon(head, Color("1a1e26").lerp(WARM, lit))
+	var outline := head.duplicate()
+	outline.append(head[0])
+	draw_polyline(outline, IRON, 2)
+	draw_line(Vector2(cx, 6), Vector2(cx, 38), IRON, 2)
+	draw_colored_polygon(PackedVector2Array([Vector2(cx - 17, 7), Vector2(cx, -9), Vector2(cx + 17, 7)]), IRON)
+
+
+func _draw_notice_board() -> void:
+	var w := size.x
+	draw_rect(Rect2(14, 40, 10, size.y - 40), WOOD_DARK)
+	draw_rect(Rect2(w - 24, 40, 10, size.y - 40), WOOD_DARK)
+	draw_rect(Rect2(-8, 8, w + 16, 12), WOOD_DARK)
+	draw_rect(Rect2(0, 20, w, 120), WOOD)
+	draw_rect(Rect2(0, 20, w, 120), WOOD_DARK, false, 4)
+	# Old papers; the big one is the notice.
+	draw_colored_polygon(PackedVector2Array([Vector2(14, 34), Vector2(54, 30), Vector2(58, 84), Vector2(16, 88)]), PAPER.darkened(0.25))
+	draw_colored_polygon(PackedVector2Array([Vector2(118, 36), Vector2(146, 40), Vector2(142, 100), Vector2(114, 96)]), PAPER.darkened(0.3))
+	var notice := Rect2(56, 42, 64, 86)
+	draw_rect(notice, PAPER)
+	for i in 6:
+		var line_y := notice.position.y + 12 + i * 11
+		draw_line(Vector2(notice.position.x + 8, line_y), Vector2(notice.end.x - (8 if i < 5 else 20), line_y), Color(0.2, 0.18, 0.15, 0.6), 2)
+	draw_line(Vector2(notice.position.x + 8, notice.end.y - 10), Vector2(notice.end.x - 14, notice.end.y - 10), Color(0.5, 0.1, 0.1, 0.8), 2)
+
+
+func _draw_facade() -> void:
+	var w := size.x
+	var h := size.y
+	var stone := Color("575160")
+	draw_rect(Rect2(0, 60, w, h - 60), stone)
+	var course_y := 140.0
+	while course_y < h:
+		draw_line(Vector2(0, course_y), Vector2(w, course_y), stone.darkened(0.2), 2)
+		course_y += 42.0
+	# Pediment with the guild's lamp emblem, then the cornice.
+	draw_colored_polygon(PackedVector2Array([Vector2(w * 0.2, 54), Vector2(w * 0.5, 0), Vector2(w * 0.8, 54)]), stone.lightened(0.06))
+	draw_arc(Vector2(w * 0.5, 34), 10, 0, TAU, 18, Color("b08a4a"), 3)
+	draw_rect(Rect2(-14, 50, w + 28, 22), stone.lightened(0.15))
+	# Pilasters.
+	for px in [w * 0.06, w * 0.94 - 34]:
+		draw_rect(Rect2(px, 72, 34, h - 72), stone.lightened(0.08))
+		draw_rect(Rect2(px - 4, 72, 42, 12), stone.lightened(0.18))
+	# Sign band.
+	var sign := Rect2(w * 0.2, 90, w * 0.6, 34)
+	draw_rect(sign, Color("1e1a20"))
+	draw_string(Fonts.DISPLAY, Vector2(sign.position.x, sign.position.y + 25), "LAMPLIGHTERS' GUILD",
+		HORIZONTAL_ALIGNMENT_CENTER, sign.size.x, 24, Color("b08a4a"))
+	# Upper windows, warm once the city is relit.
+	for wx in [w * 0.2, w * 0.68]:
+		var frame := Rect2(wx, 150, 74, 120)
+		draw_colored_polygon(_arch_points(frame), WOOD_DARK)
+		draw_colored_polygon(_arch_points(frame.grow(-8)), Color("0c1120").lerp(WARM, lit * 0.85))
+	# The night door: arched frame, door, a speaking grille and a knocker.
+	draw_colored_polygon(_arch_points(Rect2(200, 320, 170, 250)), stone.darkened(0.35))
+	draw_colored_polygon(_arch_points(Rect2(215, 340, 140, 230)), WOOD_DARK)
+	draw_line(Vector2(285, 410), Vector2(285, 570), WOOD_DARK.darkened(0.3), 3)
+	var grille := Rect2(265, 404, 40, 26)
+	draw_rect(grille, Color("08090c"))
+	for gx in [275, 285, 295]:
+		draw_line(Vector2(gx, grille.position.y), Vector2(gx, grille.end.y), METAL, 2)
+	draw_arc(Vector2(330, 480), 9, 0, TAU, 18, METAL.lightened(0.2), 3)
+	draw_rect(Rect2(190, h - 10, 190, 10), stone.lightened(0.1))

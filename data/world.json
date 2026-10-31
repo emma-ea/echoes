@@ -1,6 +1,16 @@
 {
   "title": "Echoes of the Forgotten City",
-  "start_scene": "foyer",
+  "subtitle": "Chapter One: The Lamplighters' Guildhall",
+  "start_scene": "street",
+  "start_echoes": ["echo_summons"],
+  "intro": [
+	"A hundred years ago, in a single night, every lamp in the city of Veyl went out.",
+	"By morning its people were gone. No one has lived there since. No one has ever learned why.",
+	"Last week, a letter found you. The paper was brittle, the ink brown with age.",
+	"It asked you to come to Veyl, to the Lamplighters' Guildhall. It asked you to bring a lantern.",
+    "So you did."
+  ],
+  "title_music": "res://audio/forgotten_city.ogg",
   "music": [
 	{ "track": "res://audio/lamps_lit.ogg", "if": "flag:valve_opened" },
 	{ "track": "res://audio/forgotten_city.ogg" }

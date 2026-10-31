@@ -6,16 +6,25 @@ const DATA_DIR := "res://data/"
 const SLOTS: Array[String] = ["who", "what", "when", "where"]
 const HOTSPOT_ACTIONS: Array[String] = ["echo", "goto", "puzzle", "examine", "talk"]
 const PUZZLE_TYPES: Array[String] = ["dial_code"]
-const CONDITION_KINDS: Array[String] = ["flag", "echo", "discovery", "puzzle"]
+const CONDITION_KINDS: Array[String] = ["flag", "echo", "discovery", "puzzle", "visited"]
 const PROP_TYPES: Array[String] = [
 	"window", "door", "archway", "desk", "lectern", "chandelier", "sconce", "pillar", "chalk",
-	"valve", "pipes", "crate", "rubble", "banner", "shelf", "cobweb", "sprite",
+	"valve", "pipes", "crate", "rubble", "banner", "shelf", "cobweb", "street_lamp", "facade",
+	"notice_board", "sprite",
 ]
+const ROOM_STYLES: Array[String] = ["interior", "street"]
+# Flags set by the UI rather than by content (e.g. the tutorial's "open your Chronicle").
+const UI_FLAGS: Array[String] = ["opened_chronicle"]
 const MIN_ROOM_WIDTH := 1600
 # NPC looks and how tall each figure is (sizes the tap area around them).
 const NPC_LOOKS := {"porter": 185.0, "child": 125.0}
 
 var title: String = ""
+var subtitle: String = ""
+var intro: Array = []
+var title_music: String = ""
+var start_echoes: Array = []
+var quest_steps: Array = []
 var start_scene: String = ""
 var variables: Dictionary = {}
 var scenes: Dictionary = {}
@@ -32,6 +41,10 @@ var music: Array = []
 func _init() -> void:
 	var world: Dictionary = _load_json("world.json")
 	title = world.get("title", "")
+	subtitle = world.get("subtitle", "")
+	intro = world.get("intro", [])
+	title_music = world.get("title_music", "")
+	start_echoes = world.get("start_echoes", [])
 	start_scene = world.get("start_scene", "")
 	variables = world.get("variables", {})
 	music = world.get("music", [])
@@ -43,6 +56,7 @@ func _init() -> void:
 	puzzles = _load_json("puzzles.json")
 	npcs = _load_json("npcs.json")
 	dialogues = _load_json("dialogue.json")
+	quest_steps = _load_json("quests.json").get("steps", [])
 	_add_npc_hotspots()
 	for problem in validate():
 		push_error("Content: " + problem)
@@ -88,6 +102,15 @@ func validate() -> Array[String]:
 	var problems: Array[String] = []
 	var flags_set := _flags_set_anywhere()
 	var reachable_echoes := {}
+	for echo_id in start_echoes:
+		if echoes.has(echo_id):
+			reachable_echoes[echo_id] = true
+		else:
+			problems.append("start_echoes: unknown echo '%s'" % echo_id)
+	if intro.is_empty():
+		problems.append("world.json has no intro lines")
+	if not ResourceLoader.exists(title_music):
+		problems.append("title_music '%s' not found" % title_music)
 
 	if not scenes.has(start_scene):
 		problems.append("start_scene '%s' is not a scene" % start_scene)
@@ -104,6 +127,14 @@ func validate() -> Array[String]:
 			problems.append("%s: floor_y should be between 300 and 700" % room_where)
 		if walk.x < 0 or walk.y > width or walk.x >= walk.y:
 			problems.append("%s: walk must be [min_x, max_x] inside the room" % room_where)
+		if scene.get("style", "interior") not in ROOM_STYLES:
+			problems.append("%s: style must be one of %s" % [room_where, ROOM_STYLES])
+		for trigger in scene.get("triggers", []):
+			var span: Array = trigger.get("x", [])
+			if span.size() != 2 or float(span[0]) > float(span[1]):
+				problems.append("%s: trigger x must be [from, to]" % room_where)
+			if trigger.get("set_flags", []).is_empty():
+				problems.append("%s: trigger has no set_flags" % room_where)
 		var spawn_x := float(scene.get("spawn_x", walk.x))
 		if spawn_x < walk.x or spawn_x > walk.y:
 			problems.append("%s: spawn_x is outside the walkable range" % room_where)
@@ -192,6 +223,22 @@ func validate() -> Array[String]:
 				problems.append("event '%s': no echo provides the answer term '%s'" % [event_id, term_id])
 		if not event.has("discovery"):
 			problems.append("event '%s' has no discovery" % event_id)
+		_check_condition(event.get("visible_if", ""), "event '%s'" % event_id, flags_set, problems)
+
+	var step_ids := {}
+	for step in quest_steps:
+		var step_id := str(step.get("id", ""))
+		var where := "quest step '%s'" % step_id
+		if step_id.is_empty() or step_ids.has(step_id):
+			problems.append("%s: every step needs a unique id" % where)
+		step_ids[step_id] = true
+		if str(step.get("objective", "")).is_empty():
+			problems.append("%s: has no objective text" % where)
+		if step.get("highlight", "") not in ["", "chronicle"]:
+			problems.append("%s: highlight can only be 'chronicle'" % where)
+		var done_if = step.get("done_if", [])
+		for condition in (done_if if typeof(done_if) == TYPE_ARRAY else [done_if]):
+			_check_condition(str(condition), where, flags_set, problems)
 
 	for puzzle_id in puzzles:
 		var puzzle: Dictionary = puzzles[puzzle_id]
@@ -274,6 +321,12 @@ func _check_dialogue_target(nodes: Dictionary, target: String, where: String, pr
 
 func _flags_set_anywhere() -> Dictionary:
 	var flags := {}
+	for flag in UI_FLAGS:
+		flags[flag] = true
+	for scene in scenes.values():
+		for trigger in scene.get("triggers", []):
+			for flag in trigger.get("set_flags", []):
+				flags[flag] = true
 	var sources: Array = []
 	for event_id in events:
 		sources.append(events[event_id].get("effects", {}))
@@ -300,6 +353,7 @@ func _check_condition(condition: String, where: String, flags_set: Dictionary, p
 		"echo": known = echoes.has(id)
 		"discovery": known = events.has(id)
 		"puzzle": known = puzzles.has(id)
+		"visited": known = scenes.has(id)
 		_:
 			problems.append("%s: condition '%s' must start with one of %s" % [where, condition, CONDITION_KINDS])
 			return

@@ -4,9 +4,17 @@ Vertical slice (Milestone 1 in [DESIGN.md](DESIGN.md)): one building, 3 Echoes, 
 Godot 4.7, 2D side-view, mobile renderer, landscape. A hooded explorer with a lantern walks through
 dark rooms; all art is drawn in code as placeholders until real art exists.
 
+The game opens on a title screen, then (for a new game) a short narrated intro: a letter has
+summoned you to the abandoned city of Veyl. A **prelude** on the street outside the guildhall teaches
+one thing at a time, with an on-screen objective and tip cards: walking, reading Echoes, the Chronicle,
+a two-part practice deduction (the night door only opens once you've worked out who sent the letter),
+doors, and talking to people. Objectives then carry on through the main mystery without tips.
+The **Menu** button (or Esc / Android back) pauses the game.
+
 Two ghosts haunt the guildhall: **Pell** the night porter (foyer), who guides you with hints that follow
 your progress, and **Wren** (Watch Office), a child who saw what happened. Dark ambient music plays
-throughout and crossfades to a warmer theme once the lamps are relit (toggle with the Music button).
+throughout and crossfades to a warmer theme once the lamps are relit. Music on/off and volume (1-5)
+are in the in-game Menu and saved in `user://settings.cfg`.
 
 **Controls:** tap/click the floor to walk, tap an object or ghost to walk over and use / talk to it.
 In conversations, tap (or E / Space) to continue.
@@ -15,7 +23,7 @@ Desktop testing: A/D or arrow keys to walk, E or Space to use whatever is nearby
 ## Run it
 
 1. Install Godot 4.7 (standard build, not .NET): https://godotengine.org/download or `brew install --cask godot`
-2. Open Godot, **Import** this folder (`project.godot`), press **F5**.
+2. Open Godot, **Import** this folder (`project.godot`), press **F5**. It starts at the title screen.
 
 Smoke test (validates content and plays through the slice headless):
 
@@ -44,7 +52,8 @@ Content problems also show up as red errors in the editor's Output panel every t
 
 ```
 data/               All authored content (edit these to make the game)
-  world.json        Start scene, music, randomised run variables
+  world.json        Title, intro narration, start scene and starting Echoes, music, run variables
+  quests.json       Objectives in order, with tutorial tips, each done when its conditions pass
   scenes.json       Locations: background, art layers, hotspots
   echoes.json       Clues the player collects, and the terms each one teaches
   chronicle.json    Terms (who/what/when/where) and the events to deduce
@@ -55,17 +64,22 @@ audio/              Music loops (.ogg)
 autoload/
   content_db.gd     Loads + validates data/ (read-only at runtime)
   game_state.gd     The player's run: rules, conditions, dialogue branching, local save
-  music.gd          Picks and crossfades music by progress; remembers on/off in user://settings.cfg
+  music.gd          Picks and crossfades music by progress; on/off and volume 1-5 kept in user://settings.cfg
+scenes/             title.tscn (main scene) -> intro.tscn (new game) -> main.tscn (the game)
 scripts/
+  title.gd, title_backdrop.gd   Main menu and its night-city backdrop
+  intro.gd          Opening narration
   main.gd           Root: world + UI layer (HUD, overlays, toasts, room fades); routes interactions
   world/
-	world.gd        Room, explorer, camera, ambient light, tap/keyboard input, hotspot markers
-	room.gd         Builds a room from data: wall, floor, props, dust; fades lights on flag changes
-	prop.gd         Placeholder-art vocabulary (window, door, desk, valve...) + "sprite" for real art
-	player.gd       The explorer: walking, animation, lantern light
-	ghost.gd        Ghost NPCs: hover, flicker, glow, watch the explorer
-	hotspot_marker.gd, tap_ripple.gd, lighting.gd
-  ui/               Modal base, Echo popup, Chronicle board, dial puzzle, dialogue box
+    world.gd        Room, explorer, camera, ambient light, tap/keyboard input, hotspot markers
+    room.gd         Builds a room from data: wall, floor, props, dust; fades lights on flag changes
+    prop.gd         Placeholder-art vocabulary (window, door, desk, valve...) + "sprite" for real art
+    player.gd       The explorer: walking, animation, lantern light
+    ghost.gd        Ghost NPCs: hover, flicker, glow, watch the explorer
+    skyline.gd      Parallax sky and rooftops for outdoor rooms (and the title screen)
+    hotspot_marker.gd, tap_ripple.gd, lighting.gd
+  ui/               Modal base, Echo popup, Chronicle board, dial puzzle, dialogue box,
+                    pause menu, confirm dialog, volume control
 tools/
   smoke_test.*      Headless test (content, rules, save, walking, every screen)
   screenshots.*     Renders key moments to PNG
@@ -77,8 +91,8 @@ Game rules live in `GameState`; UI only reads state and calls its methods. Every
 
 ## Data formats
 
-**Conditions** are strings used by `visible_if` and `requires`:
-`flag:<name>`, `echo:<id>`, `discovery:<event id>`, `puzzle:<id>`. Prefix `!` to negate. Empty means always true.
+**Conditions** are strings used by `visible_if`, `requires`, `if` and `done_if`:
+`flag:<name>`, `echo:<id>`, `discovery:<event id>`, `puzzle:<id>`, `visited:<scene id>`. Prefix `!` to negate. Empty means always true.
 
 **Text** anywhere can use `{variable}` placeholders, filled from this run's rolled `world.json` variables.
 
@@ -93,24 +107,33 @@ never see past the edge); the camera follows the explorer. Coordinates are room 
   "name": "Shown in the HUD",
   "width": 2200, "floor_y": 600,          // the explorer walks along floor_y
   "walk": [70, 2130], "spawn_x": 260,     // walkable x range; where you appear on load / new run
+  "style": "interior" | "street",        // street: night sky, parallax rooftops, cobbles
   "npcs": [{ "id": "pell", "x": 430, "visible_if": "..." }],
+  "triggers": [{ "x": [520, 2200], "set_flags": ["walked_street"] }],  // walking into the range sets flags
   "palette": { "wall": "#5b5262", "trim": "#6b5a5e", "floor": "#3b3230" },
   "ambient": [{ "color": "#e6dccd", "if": "flag:valve_opened" }, { "color": "#7a84a6" }],
   "props":    [{ "type": "window", "rect": [x, y, w, h], "visible_if": "...", "lit_if": "...",
-                 "front": true, "flip": true }],
+				 "front": true, "flip": true }],
   "hotspots": [{ "label": "...", "rect": [x, y, w, h], "action": "...", "stand_x": 690,
-                 "visible_if": "...", "requires": "...", "locked_text": "shown if requires fails" }]
+				 "visible_if": "...", "requires": "...", "locked_text": "shown if requires fails" }]
 }
 ```
 - **ambient** tints the whole room: the first entry whose `if` passes wins. Dark tint + lights = atmosphere.
 - **props** are drawn scenery. Types: `window door archway desk lectern chandelier sconce pillar chalk
-  valve pipes crate rubble banner shelf cobweb`, or `sprite` with `"texture": "res://art/x.png"` for real art.
+  valve pipes crate rubble banner shelf cobweb street_lamp facade notice_board`, or `sprite` with `"texture": "res://art/x.png"` for real art.
   `lit_if` gives a prop a light that fades in when the condition becomes true. `front` draws it in front
   of the explorer. `flip` mirrors it.
 - **hotspots** are what the explorer can use. Tapping one walks to `stand_x` (default: middle of the rect),
   then triggers the action. Actions: `echo` (+ `"echo": id`), `goto` (+ `"target": scene`, `"arrive_x"`),
   `puzzle` (+ `"puzzle": id`), `examine` (+ `"text"`).
 - A city change is a pair of props or hotspots with `visible_if` / `lit_if` set to `flag:x` and `!flag:x`.
+
+**quests.json**: `{ "steps": [{ "id", "objective", "tip", "highlight": "chronicle", "done_if": "cond" or ["cond", ...] }] }`.
+The current objective is the first step whose `done_if` isn't met yet; give the last step no `done_if`.
+`tip` shows a dismissable tip card while the step is current; `highlight` pulses the Chronicle button.
+The flag `opened_chronicle` is set by the game itself when the Chronicle is opened.
+
+**chronicle.json → events** can have `visible_if` to stay off the Chronicle until the story reaches them.
 
 **world.json → music**: `[{ "track": "res://audio/x.ogg", "if": "flag:..." }, ...]`. The first entry whose
 `if` passes plays; changes crossfade over 3 s. Drop in composed `.ogg` files any time.

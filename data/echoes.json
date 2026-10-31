@@ -1,4 +1,16 @@
 {
+  "echo_summons": {
+    "title": "The letter that found you",
+    "kind": "Letter",
+    "text": "To whoever finds this,\n\nThe lamps of Veyl went out a hundred years ago, and no one has ever asked why. I think you might.\n\nCome to the Lamplighters' Guildhall and knock at the night door. Bring a lantern. The door opens only for someone who knows who is waiting behind it.\n\n- P.",
+    "terms": ["guildhall"]
+  },
+  "echo_notice": {
+    "title": "Notice on the board",
+    "kind": "Notice",
+    "text": "NOTICE\nBy order of the Council, the Lamplighters' Guildhall is closed to the public after dusk.\nAll enquiries to the Council Warden at the Beacon Tower.\nAfter dark, ring at the night door. Night porter: P. Pell.\n\nThe paper is a hundred years old. Someone has underlined the last line.",
+    "terms": ["council_warden", "beacon_tower", "pell", "guildhall"]
+  },
   "echo_letter": {
     "title": "Unsent letter",
     "kind": "Letter",

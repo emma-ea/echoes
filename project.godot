@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Echoes of the Forgotten City"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/title.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 
 [autoload]
@@ -27,6 +27,10 @@ window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=4
+
+[gui]
+
+theme/custom_font="res://fonts/Alegreya-Variable.ttf"
 
 [rendering]
 

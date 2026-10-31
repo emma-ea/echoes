@@ -1,4 +1,39 @@
 {
+  "street": {
+    "name": "Veyl - Lantern Street",
+    "style": "street",
+    "width": 2200,
+    "floor_y": 610,
+    "walk": [60, 2120],
+    "spawn_x": 140,
+    "palette": { "floor": "#3a3a46" },
+    "ambient": [
+      { "color": "#e0d6c8", "if": "flag:valve_opened" },
+      { "color": "#7680a4" }
+    ],
+    "triggers": [
+      { "x": [520, 2200], "set_flags": ["walked_street"] }
+    ],
+    "props": [
+      { "type": "street_lamp", "rect": [280, 250, 40, 360], "lit_if": "flag:valve_opened" },
+      { "type": "notice_board", "rect": [640, 400, 160, 210] },
+      { "type": "street_lamp", "rect": [1000, 250, 40, 360], "lit_if": "flag:valve_opened" },
+      { "type": "crate", "rect": [1150, 530, 110, 80] },
+      { "type": "rubble", "rect": [1280, 570, 140, 45] },
+      { "type": "street_lamp", "rect": [1520, 250, 40, 360], "lit_if": "flag:valve_opened" },
+      { "type": "facade", "rect": [1640, 40, 560, 570], "lit_if": "flag:valve_opened" }
+    ],
+    "hotspots": [
+      { "label": "Notice board", "rect": [640, 400, 160, 210], "action": "echo", "echo": "echo_notice" },
+      { "label": "Street lamp", "rect": [980, 250, 80, 360], "action": "examine", "visible_if": "!flag:valve_opened",
+        "text": "A gas lamp, its glass cracked and its mantle cold. The whole street is lined with them. Not one is lit." },
+      { "label": "Street lamp", "rect": [980, 250, 80, 360], "action": "examine", "visible_if": "flag:valve_opened",
+        "text": "The lamp burns steady and gold. Up the hill, another catches, then another." },
+      { "label": "The night door", "rect": [1855, 380, 140, 230], "action": "goto", "target": "foyer", "arrive_x": 120,
+        "requires": "discovery:the_summons",
+        "locked_text": "You knock. From behind the door a thin voice answers: \"Who sent for you? Come back when you know.\" (Work it out in your Chronicle.)" }
+    ]
+  },
   "foyer": {
     "name": "Lamplighters' Guildhall - Foyer",
     "width": 2200,
@@ -13,7 +48,8 @@
     ],
     "props": [
       { "type": "cobweb", "rect": [0, 36, 160, 130] },
-      { "type": "banner", "rect": [110, 70, 110, 240] },
+      { "type": "door", "rect": [20, 330, 150, 270] },
+      { "type": "banner", "rect": [196, 70, 84, 230] },
       { "type": "window", "rect": [290, 120, 190, 270], "lit_if": "flag:valve_opened" },
       { "type": "desk", "rect": [540, 470, 300, 130] },
       { "type": "sconce", "rect": [860, 250, 40, 70], "lit_if": "flag:valve_opened" },
@@ -26,6 +62,7 @@
       { "type": "pillar", "rect": [960, 30, 70, 575], "front": true }
     ],
     "hotspots": [
+      { "label": "Out to the street", "rect": [20, 330, 150, 270], "action": "goto", "target": "street", "arrive_x": 1925 },
       { "label": "Reception desk", "rect": [540, 440, 300, 160], "action": "echo", "echo": "echo_letter" },
       { "label": "Chandelier", "rect": [1100, 60, 180, 160], "action": "examine", "visible_if": "!flag:valve_opened",
         "text": "A gas chandelier, cold and furred with dust. Every jet is open. Something upstream stopped the gas." },

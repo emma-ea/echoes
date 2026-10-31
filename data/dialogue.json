@@ -9,9 +9,10 @@
     },
     "first_meeting": {
       "lines": [
-        "...A lantern. Nobody has carried a lantern through these halls in a hundred years.",
-        "Forgive me. I'm Pell. I kept the night door here, back when there were nights worth keeping.",
-        "You've come about the dark, haven't you? Everyone who comes, comes about the dark."
+        "You came. And you brought a lantern. Nobody has carried a lantern through these halls in a hundred years.",
+        "Forgive the riddle at the door. I had to be sure you'd look closely at things. You'll need to, in here.",
+        "I'm Pell. I kept the night door, back when there were nights worth keeping. I'm the one who wrote to you.",
+        "One night every lamp in this city went out, and everyone vanished. I want to know why. I think you can find out."
       ],
       "effects": { "set_flags": ["met_pell"] },
       "next": "menu"

@@ -1,5 +1,9 @@
 {
   "terms": {
+    "pell":           { "label": "Pell, the night porter",       "category": "who" },
+    "council_warden": { "label": "the Council Warden",           "category": "who" },
+    "guildhall":      { "label": "at the Lamplighters' Guildhall", "category": "where" },
+    "beacon_tower":   { "label": "at the Beacon Tower",          "category": "where" },
     "ilsa":           { "label": "Ilsa Varn",             "category": "who" },
     "orren":          { "label": "Orren Hale",            "category": "who" },
     "shut_valve":     { "label": "shut the great valve",  "category": "what" },
@@ -10,8 +14,18 @@
     "dusk":           { "label": "at dusk",               "category": "when" }
   },
   "events": {
+    "the_summons": {
+      "title": "Who sent for you?",
+      "slots": { "who": "pell", "where": "guildhall" },
+      "discovery": {
+        "title": "The Night Porter",
+        "text": "The letter was sent by Pell, the night porter, from the Lamplighters' Guildhall.\n\nBut the notice naming him is a hundred years old. Whoever is waiting behind the night door has been waiting a very long time."
+      },
+      "effects": {}
+    },
     "lamps_out": {
       "title": "The night the lamps went out",
+      "visible_if": "flag:met_pell",
       "slots": { "who": "ilsa", "what": "shut_valve", "when": "third_bell" },
       "discovery": {
         "title": "The Valve Keeper",

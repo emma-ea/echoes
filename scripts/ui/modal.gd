@@ -4,6 +4,10 @@ extends Control
 
 signal closed
 
+const Fonts := preload("res://scripts/ui/fonts.gd")
+## Text this size or larger is a heading and uses the display face.
+const HEADING_SIZE := 28
+
 var panel: PanelContainer
 var content: VBoxContainer
 
@@ -65,6 +69,8 @@ static func make_label(text: String, font_size: int = 0) -> Label:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if font_size > 0:
 		label.add_theme_font_size_override("font_size", font_size)
+	if font_size >= HEADING_SIZE:
+		label.add_theme_font_override("font", Fonts.DISPLAY)
 	return label
 
 

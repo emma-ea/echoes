@@ -16,16 +16,28 @@ func _rebuild() -> void:
 	clear_content()
 	add_label("Chronicle", 34)
 
+	# Scrolls once there are more Echoes and events than fit on screen.
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(1056, 440)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	content.add_child(scroll)
 	var columns := HBoxContainer.new()
+	columns.size_flags_horizontal = SIZE_EXPAND_FILL
 	columns.add_theme_constant_override("separation", 40)
-	content.add_child(columns)
+	scroll.add_child(columns)
 	columns.add_child(_build_echo_list())
 
 	var events_box := VBoxContainer.new()
 	events_box.size_flags_horizontal = SIZE_EXPAND_FILL
 	events_box.add_theme_constant_override("separation", 24)
 	columns.add_child(events_box)
+	# Open questions first, solved ones after; events stay hidden until the story reaches them.
+	var open_events: Array = []
+	var solved_events: Array = []
 	for event_id in ContentDB.events:
+		if GameState.is_event_visible(event_id):
+			(solved_events if GameState.has_discovery(event_id) else open_events).append(event_id)
+	for event_id in open_events + solved_events:
 		events_box.add_child(_build_event(event_id))
 
 	add_button("Close", close)

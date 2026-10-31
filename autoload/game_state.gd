@@ -4,7 +4,7 @@ extends Node
 
 signal changed
 
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2
 
 var save_path := "user://save.json"
 
@@ -16,23 +16,34 @@ var placements: Dictionary = {}     # event id -> { slot: term id }
 var discoveries: Array = []         # resolved event ids
 var solved_puzzles: Array = []
 var current_scene: String = ""
+var visited: Array = []             # scene ids the player has been to
+
+## True once there's a run worth continuing (a save was loaded, or a new game was started).
+var has_saved_game := false
 
 
 func _ready() -> void:
-	if not load_game():
-		new_game()
+	has_saved_game = load_game()
+	if not has_saved_game:
+		_reset_run(0)  # a valid empty run in memory, but nothing saved until "New Game"
 
 
 func new_game(p_seed: int = 0) -> void:
+	_reset_run(p_seed)
+	has_saved_game = true
+	_commit()
+
+
+func _reset_run(p_seed: int) -> void:
 	run_seed = p_seed if p_seed != 0 else (randi() | 1)
 	flags = {}
-	echoes = []
+	echoes = ContentDB.start_echoes.duplicate()
 	placements = {}
 	discoveries = []
 	solved_puzzles = []
 	current_scene = ContentDB.start_scene
+	visited = [current_scene]
 	_roll_variables()
-	_commit()
 
 
 # --- Queries ----------------------------------------------------------------
@@ -51,8 +62,31 @@ func check(condition: String) -> bool:
 		"echo": result = has_echo(id)
 		"discovery": result = has_discovery(id)
 		"puzzle": result = is_puzzle_solved(id)
+		"visited": result = id in visited
 		_: push_error("Unknown condition: " + condition)
 	return result != negate
+
+
+## True if every condition passes. Accepts one condition string or an array of them.
+func check_all(conditions) -> bool:
+	if typeof(conditions) != TYPE_ARRAY:
+		return check(str(conditions))
+	for condition in conditions:
+		if not check(str(condition)):
+			return false
+	return true
+
+
+## The first quest step that isn't done yet (the final step has no done_if, so it stays).
+func current_step() -> Dictionary:
+	for step in ContentDB.quest_steps:
+		if not step.has("done_if") or not check_all(step.done_if):
+			return step
+	return {}
+
+
+func is_event_visible(event_id: String) -> bool:
+	return check(ContentDB.events[event_id].get("visible_if", ""))
 
 
 func has_echo(echo_id: String) -> bool:
@@ -173,7 +207,20 @@ func enter_dialogue_node(node: Dictionary) -> void:
 
 func go_to(scene_id: String) -> void:
 	current_scene = scene_id
+	if scene_id not in visited:
+		visited.append(scene_id)
 	_commit()
+
+
+## Sets flags that aren't set yet; saves only if something changed.
+func set_flags(names: Array) -> void:
+	var changed_any := false
+	for flag in names:
+		if not flags.has(flag):
+			flags[flag] = true
+			changed_any = true
+	if changed_any:
+		_commit()
 
 
 # --- Internals --------------------------------------------------------------
@@ -219,6 +266,7 @@ func save_game() -> void:
 		"discoveries": discoveries,
 		"solved_puzzles": solved_puzzles,
 		"current_scene": current_scene,
+		"visited": visited,
 	}
 	# Write to a temp file first so a crash mid-write can't corrupt the save.
 	var temp_path := save_path + ".tmp"
@@ -249,6 +297,7 @@ func load_game() -> bool:
 	discoveries = data.get("discoveries", [])
 	solved_puzzles = data.get("solved_puzzles", [])
 	current_scene = data.get("current_scene", "")
+	visited = data.get("visited", [])
 	# Drop references to content that no longer exists (e.g. after a content update).
 	echoes = echoes.filter(func(id): return ContentDB.echoes.has(id))
 	discoveries = discoveries.filter(func(id): return ContentDB.events.has(id))
