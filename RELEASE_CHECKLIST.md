@@ -14,8 +14,8 @@
 ## 1. Decisions
 
 - [x] **Platform:** Android first, by sending the APK file directly. iOS (TestFlight) and desktop builds come later if needed.
-- [x] **Package name:** `com.oddlycodes.echoesintheforgottencity`. This is permanent once on the Play Store.
-- [x] **Launcher name:** Echoes in the Forgotten City
+- [x] **Package name:** `com.oddlycodes.echoesoftheforgottencity`. This is permanent once on the Play Store.
+- [x] **Launcher name:** Echoes of the Forgotten City
 - [x] **Version:** `0.1.0`, `version/code` 1. Raise `version/code` by 1 for every build you send.
   Also set as the project version (`application/config/version`), so the game can show it.
 - [x] **Renderer:** Mobile (Vulkan). Godot's *Fallback to OpenGL 3* setting is on (the default), so phones
