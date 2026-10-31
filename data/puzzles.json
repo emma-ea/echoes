@@ -1,0 +1,14 @@
+{
+  "valve_dials": {
+    "type": "dial_code",
+    "title": "The great valve",
+    "prompt": "Four brass dials, each numbered 1 to 6, lock the wheel in place.",
+    "dials": 4,
+    "min": 1,
+    "max": 6,
+    "solution_var": "valve_code",
+    "fail_text": "The wheel shudders, but won't turn.",
+    "solved_text": "The dials click home. The wheel groans and turns, and far above you the pipes begin to sing. For the first time in a century, a lamp flickers on.",
+    "effects": { "set_flags": ["valve_opened"] }
+  }
+}

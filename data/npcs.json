@@ -1,0 +1,14 @@
+{
+  "pell": {
+    "name": "Pell, the night porter",
+    "look": "porter",
+    "color": "#a8d8ff",
+    "dialogue": "pell"
+  },
+  "wren": {
+    "name": "Wren",
+    "look": "child",
+    "color": "#d0bcff",
+    "dialogue": "wren"
+  }
+}

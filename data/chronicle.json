@@ -1,0 +1,23 @@
+{
+  "terms": {
+    "ilsa":           { "label": "Ilsa Varn",             "category": "who" },
+    "orren":          { "label": "Orren Hale",            "category": "who" },
+    "shut_valve":     { "label": "shut the great valve",  "category": "what" },
+    "lit_beacon":     { "label": "lit the beacon",        "category": "what" },
+    "sealed_archive": { "label": "sealed the archive",    "category": "what" },
+    "third_bell":     { "label": "at the third bell",     "category": "when" },
+    "midnight":       { "label": "at midnight",           "category": "when" },
+    "dusk":           { "label": "at dusk",               "category": "when" }
+  },
+  "events": {
+    "lamps_out": {
+      "title": "The night the lamps went out",
+      "slots": { "who": "ilsa", "what": "shut_valve", "when": "third_bell" },
+      "discovery": {
+        "title": "The Valve Keeper",
+        "text": "Ilsa Varn, the valve keeper, shut the great valve at the third bell, and every lamp in the city went dark. It was no accident.\n\nNow that you know whose hand wrote them, the rubbed-out numbers under the drawing come clear: her setting for reopening the valve. {valve_code}."
+      },
+      "effects": {}
+    }
+  }
+}

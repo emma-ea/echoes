@@ -1,0 +1,99 @@
+{
+  "foyer": {
+    "name": "Lamplighters' Guildhall - Foyer",
+    "width": 2200,
+    "floor_y": 600,
+    "walk": [70, 2130],
+    "spawn_x": 260,
+    "npcs": [{ "id": "pell", "x": 430 }],
+    "palette": { "wall": "#5b5262", "trim": "#6b5a5e", "floor": "#3b3230" },
+    "ambient": [
+      { "color": "#e6dccd", "if": "flag:valve_opened" },
+      { "color": "#7a84a6" }
+    ],
+    "props": [
+      { "type": "cobweb", "rect": [0, 36, 160, 130] },
+      { "type": "banner", "rect": [110, 70, 110, 240] },
+      { "type": "window", "rect": [290, 120, 190, 270], "lit_if": "flag:valve_opened" },
+      { "type": "desk", "rect": [540, 470, 300, 130] },
+      { "type": "sconce", "rect": [860, 250, 40, 70], "lit_if": "flag:valve_opened" },
+      { "type": "chandelier", "rect": [1080, 36, 220, 190], "lit_if": "flag:valve_opened" },
+      { "type": "chalk", "rect": [1340, 250, 280, 200] },
+      { "type": "rubble", "rect": [1640, 560, 110, 45] },
+      { "type": "door", "rect": [1780, 330, 160, 270] },
+      { "type": "archway", "rect": [2000, 290, 180, 310] },
+      { "type": "cobweb", "rect": [2040, 36, 160, 130], "flip": true },
+      { "type": "pillar", "rect": [960, 30, 70, 575], "front": true }
+    ],
+    "hotspots": [
+      { "label": "Reception desk", "rect": [540, 440, 300, 160], "action": "echo", "echo": "echo_letter" },
+      { "label": "Chandelier", "rect": [1100, 60, 180, 160], "action": "examine", "visible_if": "!flag:valve_opened",
+        "text": "A gas chandelier, cold and furred with dust. Every jet is open. Something upstream stopped the gas." },
+      { "label": "Chandelier", "rect": [1100, 60, 180, 160], "action": "examine", "visible_if": "flag:valve_opened",
+        "text": "The chandelier hisses and burns. The foyer is gold for the first time in a hundred years." },
+      { "label": "Chalk drawing", "rect": [1340, 250, 280, 200], "action": "echo", "echo": "echo_drawing" },
+      { "label": "Watch Office", "rect": [1780, 330, 160, 270], "action": "goto", "target": "watch_office", "arrive_x": 1540 },
+      { "label": "Down to the Valve Room", "rect": [2000, 290, 180, 310], "action": "goto", "target": "valve_room", "arrive_x": 130 }
+    ]
+  },
+  "watch_office": {
+    "name": "Lamplighters' Guildhall - Watch Office",
+    "width": 1700,
+    "floor_y": 600,
+    "walk": [70, 1630],
+    "spawn_x": 1540,
+    "npcs": [{ "id": "wren", "x": 1090 }],
+    "palette": { "wall": "#4b5a66", "trim": "#5a6670", "floor": "#30363c" },
+    "ambient": [
+      { "color": "#e2dcd0", "if": "flag:valve_opened" },
+      { "color": "#7884a8" }
+    ],
+    "props": [
+      { "type": "cobweb", "rect": [0, 36, 160, 130] },
+      { "type": "shelf", "rect": [110, 190, 250, 410] },
+      { "type": "lectern", "rect": [520, 430, 130, 170] },
+      { "type": "window", "rect": [760, 110, 400, 290], "lit_if": "flag:valve_opened" },
+      { "type": "crate", "rect": [1200, 520, 110, 80] },
+      { "type": "crate", "rect": [1225, 450, 80, 70] },
+      { "type": "sconce", "rect": [1360, 250, 40, 70], "lit_if": "flag:valve_opened" },
+      { "type": "door", "rect": [1460, 330, 160, 270] }
+    ],
+    "hotspots": [
+      { "label": "Ledger shelves", "rect": [110, 190, 250, 410], "action": "examine",
+        "text": "Shelf after shelf of watch ledgers. Every one of them stops on the same night." },
+      { "label": "Logbook on the lectern", "rect": [500, 400, 170, 200], "action": "echo", "echo": "echo_logbook" },
+      { "label": "Window", "rect": [800, 150, 320, 210], "action": "examine", "visible_if": "!flag:valve_opened",
+        "text": "The city spreads out below, black from wall to wall. Not one window lit." },
+      { "label": "Window", "rect": [800, 150, 320, 210], "action": "examine", "visible_if": "flag:valve_opened",
+        "text": "Down in the city, one street at a time, the lamps are coming back." },
+      { "label": "Back to the Foyer", "rect": [1460, 330, 160, 270], "action": "goto", "target": "foyer", "arrive_x": 1860 }
+    ]
+  },
+  "valve_room": {
+    "name": "Lamplighters' Guildhall - Valve Room",
+    "width": 1800,
+    "floor_y": 620,
+    "walk": [70, 1730],
+    "spawn_x": 130,
+    "palette": { "wall": "#3f514c", "trim": "#4f625b", "floor": "#2a3330" },
+    "ambient": [
+      { "color": "#e4d6bc", "if": "flag:valve_opened" },
+      { "color": "#6f8a8a" }
+    ],
+    "props": [
+      { "type": "pipes", "rect": [0, 60, 1800, 90] },
+      { "type": "archway", "rect": [40, 310, 180, 310] },
+      { "type": "rubble", "rect": [300, 580, 160, 45] },
+      { "type": "sconce", "rect": [560, 260, 40, 70], "lit_if": "flag:valve_opened" },
+      { "type": "valve", "rect": [860, 160, 420, 440], "lit_if": "flag:valve_opened" },
+      { "type": "sconce", "rect": [1440, 260, 40, 70], "lit_if": "flag:valve_opened" },
+      { "type": "crate", "rect": [1560, 540, 120, 80] }
+    ],
+    "hotspots": [
+      { "label": "Great valve", "rect": [900, 220, 340, 340], "action": "puzzle", "puzzle": "valve_dials",
+        "requires": "discovery:lamps_out",
+        "locked_text": "Four brass dials lock the great wheel. Until you know who turned it last, and why, you'd only be guessing." },
+      { "label": "Back up to the Foyer", "rect": [40, 310, 180, 310], "action": "goto", "target": "foyer", "arrive_x": 2090 }
+    ]
+  }
+}

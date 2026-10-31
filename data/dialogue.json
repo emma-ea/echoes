@@ -1,0 +1,160 @@
+{
+  "pell": {
+    "start": {
+      "branch": [
+        { "if": "!flag:met_pell", "goto": "first_meeting" },
+        { "if": "flag:valve_opened", "goto": "after_lamps" },
+        { "goto": "greeting" }
+      ]
+    },
+    "first_meeting": {
+      "lines": [
+        "...A lantern. Nobody has carried a lantern through these halls in a hundred years.",
+        "Forgive me. I'm Pell. I kept the night door here, back when there were nights worth keeping.",
+        "You've come about the dark, haven't you? Everyone who comes, comes about the dark."
+      ],
+      "effects": { "set_flags": ["met_pell"] },
+      "next": "menu"
+    },
+    "greeting": {
+      "lines": ["Still here, lantern-bearer? Good. The dark doesn't like being looked at."],
+      "next": "menu"
+    },
+    "menu": {
+      "choices": [
+        { "text": "Where should I look next?", "goto": "guide" },
+        { "text": "What happened to the city?", "goto": "what_happened" },
+        { "text": "Who was Ilsa Varn?", "goto": "about_ilsa", "if": "echo:echo_letter" },
+        { "text": "Goodbye.", "goto": "farewell" }
+      ]
+    },
+    "what_happened": {
+      "lines": [
+        "One night every lamp went out at once. Every street, every window, every hearth-jet.",
+        "By morning the people were gone. I stayed. Porters stay.",
+        "I never learned why. The answer is still in this building, I think, if someone could put the pieces in order."
+      ],
+      "next": "menu"
+    },
+    "about_ilsa": {
+      "lines": [
+        "Ilsa Varn kept the valve watch. Quiet. Careful. Checked every gauge twice.",
+        "The night before, she asked me if I thought the Council could be trusted. I didn't answer her. I've had a long time to wish I had."
+      ],
+      "next": "menu"
+    },
+    "guide": {
+      "branch": [
+        { "if": "!echo:echo_letter", "goto": "hint_letter" },
+        { "if": "!echo:echo_drawing", "goto": "hint_drawing" },
+        { "if": "!echo:echo_logbook", "goto": "hint_logbook" },
+        { "if": "!discovery:lamps_out", "goto": "hint_chronicle" },
+        { "if": "!puzzle:valve_dials", "goto": "hint_valve" },
+        { "goto": "hint_done" }
+      ]
+    },
+    "hint_letter": {
+      "lines": ["Ilsa always left a letter on the reception desk for the morning shift. The last one is still there. I never could bring myself to read it."],
+      "next": "menu"
+    },
+    "hint_drawing": {
+      "lines": ["The guild children drew on the foyer wall while their parents worked the watch. One of them was awake that night. Look at what she drew."],
+      "next": "menu"
+    },
+    "hint_logbook": {
+      "lines": ["Every watch was written in the logbook in the Watch Office, through the door at the end of the hall. Every watch, until the last one."],
+      "next": "menu"
+    },
+    "hint_chronicle": {
+      "lines": [
+        "You've gathered what there is to gather. Now open your Chronicle and set it down: who, what, and when.",
+        "Mind you, the truth only holds if all three are true together. Half a truth is just another story."
+      ],
+      "next": "menu"
+    },
+    "hint_valve": {
+      "lines": [
+        "So now you know. Ilsa closed the valve. Through the stone arch, down the stairs, the great wheel is waiting.",
+        "She left the numbers to reopen it. You've seen them."
+      ],
+      "next": "menu"
+    },
+    "hint_done": {
+      "lines": ["Can you hear it? The pipes are singing. I'd forgotten that sound."],
+      "next": "menu"
+    },
+    "after_lamps": {
+      "lines": [
+        "The lamps... You did it. Light in the halls. Light in the streets.",
+        "Whatever Ilsa was hiding the city from, it's had a hundred years to leave. Perhaps it's safe now.",
+        "Go on, lantern-bearer. There's a whole city waiting to be remembered."
+      ],
+      "next": "menu"
+    },
+    "farewell": {
+      "lines": ["Mind the dark. It minds you."]
+    }
+  },
+
+  "wren": {
+    "start": {
+      "branch": [
+        { "if": "flag:valve_opened", "goto": "lit" },
+        { "if": "flag:met_wren", "goto": "again" },
+        { "goto": "first" }
+      ]
+    },
+    "first": {
+      "lines": [
+        "Shh. You'll wake the ledgers.",
+        "I'm Wren. I'm not supposed to be up here. Mama works the watch.",
+        "...Worked. Worked the watch. It's hard to remember which words go with now."
+      ],
+      "effects": { "set_flags": ["met_wren"] },
+      "next": "menu"
+    },
+    "again": {
+      "lines": ["You came back. Nobody comes back."],
+      "next": "menu"
+    },
+    "menu": {
+      "choices": [
+        { "text": "Did you see what happened?", "goto": "saw" },
+        { "text": "Did you make the chalk drawing?", "goto": "drawing", "if": "echo:echo_drawing" },
+        { "text": "Where is your mother?", "goto": "mother" },
+        { "text": "I have to go.", "goto": "bye" }
+      ]
+    },
+    "saw": {
+      "lines": [
+        "I saw the valve lady. She had her lantern, and she was crying, and she climbed right up onto the big wheel.",
+        "She turned it all the way round. Then everything went black at once, like closing your eyes."
+      ],
+      "next": "menu"
+    },
+    "drawing": {
+      "lines": [
+        "That's mine! The valve lady making the night. I drew it so I wouldn't forget.",
+        "There were numbers too, underneath. A grown-up wrote them. I rubbed some out by accident. Don't tell."
+      ],
+      "next": "menu"
+    },
+    "mother": {
+      "lines": [
+        "Mama keeps the beacon. Kept. Orren says she's the best beacon-keeper there ever was.",
+        "Orren is nice. He gave me the chalk."
+      ],
+      "next": "menu"
+    },
+    "bye": {
+      "lines": ["Will you come back when it's light?"]
+    },
+    "lit": {
+      "lines": [
+        "The lamps! Look, look, the whole city!",
+        "Do you think Mama can see them, wherever she went?"
+      ],
+      "next": "menu"
+    }
+  }
+}
