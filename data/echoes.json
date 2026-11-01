@@ -1,32 +1,32 @@
 {
   "echo_summons": {
-    "title": "The letter that found you",
-    "kind": "Letter",
-    "text": "To whoever finds this,\n\nThe lamps of Veyl went out a hundred years ago, and no one has ever asked why. I think you might.\n\nCome to the Lamplighters' Guildhall and knock at the night door. Bring a lantern. The door opens only for someone who knows who is waiting behind it.\n\n- P.",
-    "terms": ["guildhall"]
+	"title": "The letter that found you",
+	"kind": "Letter",
+	"text": "To whoever finds this,\n\nThe lamps of Veyl went out a hundred years ago, and no one has ever asked why. I think you might.\n\nCome to the Lamplighters' Guildhall and knock at the night door. Bring a lantern. The door opens only for someone who knows who is waiting behind it.\n\n- P.",
+	"terms": ["guildhall"]
   },
   "echo_notice": {
-    "title": "Notice on the board",
-    "kind": "Notice",
-    "text": "NOTICE\nBy order of the Council, the Lamplighters' Guildhall is closed to the public after dusk.\nAll enquiries to the Council Warden at the Beacon Tower.\nAfter dark, ring at the night door. Night porter: P. Pell.\n\nThe paper is a hundred years old. Someone has underlined the last line.",
-    "terms": ["council_warden", "beacon_tower", "pell", "guildhall"]
+	"title": "Notice on the board",
+	"kind": "Notice",
+	"text": "NOTICE\nBy order of the Council, the Lamplighters' Guildhall is closed to the public after dusk.\nAll enquiries to the Council Warden at the Beacon Tower.\nAfter dark, ring at the night door. Night porter: P. Pell.\n\nThe paper is a hundred years old. Someone has underlined the last line.",
+	"terms": ["council_warden", "beacon_tower", "pell", "guildhall"]
   },
   "echo_letter": {
-    "title": "Unsent letter",
-    "kind": "Letter",
-    "text": "Ilsa,\n\nOrren insists you take the valve watch tonight. Third bell, as always. Whatever he says, don't let him talk you into lighting the beacon early. The Council is watching all of us now.\n\n- M.",
-    "terms": ["ilsa", "orren", "third_bell", "lit_beacon"]
+	"title": "Unsent letter",
+	"kind": "Letter",
+	"text": "Ilsa,\n\nOrren insists you take the valve watch tonight. Third bell, as always. Whatever he says, don't let him talk you into lighting the beacon early. The Council is watching all of us now.\n\n- M.",
+	"terms": ["ilsa", "orren", "third_bell", "lit_beacon"]
   },
   "echo_logbook": {
-    "title": "Valve watch logbook",
-    "kind": "Logbook",
-    "text": "Dusk. Archive sealed by order of the Council. Not our business, they say.\nMidnight. Pressure steady. Inspected, O. Hale.\nThird bell. Watch handed to I. Varn.\n\nThe rest of the page has been torn out.",
-    "terms": ["sealed_archive", "dusk", "midnight", "orren", "third_bell", "ilsa"]
+	"title": "Valve watch logbook",
+	"kind": "Logbook",
+	"text": "Dusk. Archive sealed by order of the Council. Not our business, they say.\nMidnight. Pressure steady. Inspected, O. Hale.\nThird bell. Watch handed to I. Varn.\n\nThe rest of the page has been torn out.",
+	"terms": ["sealed_archive", "dusk", "midnight", "orren", "third_bell", "ilsa"]
   },
   "echo_drawing": {
-    "title": "Chalk drawing",
-    "kind": "Drawing",
-    "text": "A child's drawing on the foyer wall. A woman with a lantern hangs from an enormous wheel, turning it with her whole weight. Around her, every lamp in the city is drawn as a black circle.\n\nUnderneath, in careful letters: THE VALVE LADY MADE THE NIGHT.\n\nBelow that, in an adult's hand, four numbers have been rubbed out too badly to read.",
-    "terms": ["shut_valve"]
+	"title": "Chalk drawing",
+	"kind": "Drawing",
+	"text": "A child's drawing on the foyer wall. A woman with a lantern hangs from an enormous wheel, turning it with her whole weight. Around her, every lamp in the city is drawn as a black circle.\n\nUnderneath, in careful letters: THE VALVE LADY MADE THE NIGHT.\n\nBelow that, in an adult's hand, four numbers have been rubbed out too badly to read.",
+	"terms": ["shut_valve"]
   }
 }
