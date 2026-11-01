@@ -4,3 +4,8 @@
 export_credentials.cfg
 .DS_Store
 /android/
+# GameAnalytics keys: copy analytics_keys.example.json. They still ship inside every build.
+analytics_keys.json
+# The GameAnalytics iOS libraries (~100 MB); restore them from the SDK download when building for iOS.
+/addons/GameAnalytics/lib/ios/
+/addons/GameAnalytics/bin/ios/

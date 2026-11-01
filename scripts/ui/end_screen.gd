@@ -13,8 +13,14 @@ func _ready() -> void:
 	add_label(GameState.format_text(info.get("text", "")))
 	var url := str(info.get("feedback_url", ""))
 	if not url.is_empty():
-		add_button("Share your feedback", func(): OS.shell_open(url))
-	add_button("Keep exploring", close)
-	add_button("Main menu", func(): get_tree().change_scene_to_file(TITLE_SCENE))
+		add_button("Share your feedback", func():
+			Analytics.track("demo_end:feedback")
+			OS.shell_open(url))
+	add_button("Keep exploring", func():
+		Analytics.track("demo_end:keep_exploring")
+		close())
+	add_button("Main menu", func():
+		Analytics.track("demo_end:main_menu")
+		get_tree().change_scene_to_file(TITLE_SCENE))
 	var build := add_label(ContentDB.title + "  ·  " + BuildInfo.label(), 18)
 	build.modulate = Color(1, 1, 1, 0.5)

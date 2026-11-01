@@ -24,6 +24,7 @@ boot_splash/minimum_display_time=1500
 ContentDB="*res://autoload/content_db.gd"
 GameState="*res://autoload/game_state.gd"
 Music="*res://autoload/music.gd"
+Analytics="*res://autoload/analytics.gd"
 
 [display]
 
@@ -32,6 +33,10 @@ window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=4
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/GameAnalytics/plugin.cfg")
 
 [gui]
 

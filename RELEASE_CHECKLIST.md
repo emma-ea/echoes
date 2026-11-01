@@ -37,7 +37,13 @@
 - [x] **Boot splash.** The lantern with the game's name below, on the game's night colour, for at least
   1.5 s. Android's own launch screen uses the same colour and the lantern icon, so the two hand over cleanly.
 - [x] Launcher icons: generated in `icons/` and set in the Android preset and as the project icon.
-- [x] Offline only: no internet permission and no data collected, so there's nothing to disclose.
+- [x] Anonymous analytics through GameAnalytics (see README → Analytics). The game still plays fully
+  offline; events wait and send later. Needs the `INTERNET` and `ACCESS_NETWORK_STATE` permissions
+  (both set). No advertising ID: the build has no `AD_ID` permission, so answer "No" to Play's
+  advertising ID question. Players can turn it off in the Menu.
+  - [ ] **(you)** Put your GameAnalytics keys in `analytics_keys.json` before exporting.
+  - [ ] **(you)** A privacy policy (required by Google Play for apps that collect data), and the
+    Play Console *Data safety* form. See section 8.
 - [x] Progress saves automatically; there's a pause menu, music on/off and volume.
 
 ## 3. Test on a real phone (you)
@@ -60,9 +66,13 @@ The game has only been run on desktop so far. Before sending:
 1. **Export templates:** 4.7.2 is already installed.
 2. **Tools:** in *Editor Settings → Export → Android*, set the **Java SDK** (JDK 17) and **Android SDK** paths.
    Android Studio installs the SDK.
-3. **Gradle build:** the preset has *Use Gradle Build* on, but no Android build template is installed,
-   so the export will fail. For an APK, **turn it off** (we use no Android plugins). You only need it for a
-   Play Store AAB; then use *Project → Install Android Build Template*.
+3. **Gradle build:** on, and required: it adds the GameAnalytics Android library. The build template
+   is installed in `android/` (git-ignored; reinstall with *Project → Install Android Build Template*
+   on a fresh clone). The first export downloads dependencies, so it needs internet.
+   - **APK for testers:** *Export Format* APK with *Compress Native Libraries* on (~32 MB). This is
+     how the preset is set now.
+   - **AAB for Google Play:** set *Export Format* to AAB and turn *Compress Native Libraries* off
+     (Google recommends uncompressed; Play compresses the download itself).
 4. **Signing:** Godot can sign with its debug keystore, which is fine for friends. For anything that
    might go to the Play Store later, make a release keystore once:
    ```sh
@@ -121,3 +131,17 @@ The game has only been run on desktop so far. Before sending:
 - [ ] Sort feedback into: **blockers** (crashes, stuck), **confusion** (where people got lost),
   **balance** (too easy or hard), and **polish**.
 - [ ] Fix blockers and confusion first, then send `0.1.1` with a higher `version/code` and the same keystore.
+
+## 8. Google Play: privacy (you)
+
+- [ ] **Privacy policy** at a public URL (a simple page is fine). Say that the game sends anonymous
+  gameplay events and device info (model, OS version) to GameAnalytics to improve the game, under a
+  random ID, with no account, name or advertising ID; that players can turn it off in the Menu; and
+  link GameAnalytics' own privacy policy. Put the URL in Play Console → *App content*.
+- [ ] **Data safety form**, based on what this build sends (check GameAnalytics' current Data
+  safety guidance too, in case it changes):
+  - Collected: *App activity → App interactions*; *App info and performance → Diagnostics*;
+    *Device or other IDs* (the random ID). Purpose: *Analytics*. Not shared (GameAnalytics is a
+    service provider), encrypted in transit, not required (players can turn it off).
+  - Not collected: name, email, location, contacts, purchases, advertising ID.
+- [ ] **Ads:** "No, my app does not contain ads". **Advertising ID:** not used.

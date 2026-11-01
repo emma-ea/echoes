@@ -59,6 +59,25 @@ godot --path . res://tools/screenshots.tscn -- --out=$HOME/Desktop
 ```
 Content problems also show up as red errors in the editor's Output panel every time you run the game.
 
+## Analytics
+
+Anonymous play data goes to [GameAnalytics](https://gameanalytics.com) (SDK in `addons/GameAnalytics`)
+so you can see where players get stuck: time on each objective, wrong deductions, which hints they ask
+Pell for. The full event list is at the top of `autoload/analytics.gd`. Players get a random ID, not a
+device or advertising ID, and can turn it off in the Menu (*Share anonymous play data*).
+
+1. Create a game in GameAnalytics and copy its **game key** and **secret key**.
+2. Copy `analytics_keys.example.json` to `analytics_keys.json` and paste them in. That file is
+   git-ignored, but the keys still ship inside every build: that's how the SDK works.
+3. Only **release** builds send. To see events from the editor or a debug build, set
+   `"send_from_debug_builds": true` (use a separate GameAnalytics game for that, so test runs don't
+   mix with real players). Events show up in GameAnalytics' *Live feed* within a minute or so.
+
+With no `analytics_keys.json` (e.g. a fresh clone), nothing is sent and the game is unchanged.
+The Android export needs *Use Gradle Build* (on in the preset), which adds the SDK's Android library.
+The iOS libraries are git-ignored (~100 MB); restore `addons/GameAnalytics/lib/ios` and `bin/ios`
+from the SDK download before building for iOS.
+
 ## Layout
 
 ```
@@ -77,6 +96,8 @@ autoload/
   content_db.gd     Loads + validates data/ (read-only at runtime)
   game_state.gd     The player's run: rules, conditions, dialogue branching, local save
   music.gd          Picks and crossfades music by progress; on/off and volume 1-5 kept in user://settings.cfg
+  analytics.gd      Anonymous play events to GameAnalytics (see Analytics above)
+addons/GameAnalytics/   GameAnalytics SDK 3.2.0 (GDExtension + Android library)
 scenes/             title.tscn (main scene) -> intro.tscn (new game) -> main.tscn (the game)
 scripts/
   title.gd, title_backdrop.gd   Main menu and its night-city backdrop

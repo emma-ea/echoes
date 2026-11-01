@@ -3,6 +3,12 @@ extends Node
 ## UI reads from here and calls the mutators below; it never edits fields directly.
 
 signal changed
+# Moments worth counting (Analytics listens). `changed` fires as well whenever state changes.
+signal run_started                                            # New Game, before the first save
+signal echo_collected(echo_id: String)
+signal discovery_attempted(event_id: String, correct: bool)   # only fully filled-in events
+signal puzzle_attempted(puzzle_id: String, correct: bool)
+signal dialogue_node_entered(dialogue_id: String, node_id: String)
 
 const SAVE_VERSION := 2
 
@@ -31,6 +37,7 @@ func _ready() -> void:
 func new_game(p_seed: int = 0) -> void:
 	_reset_run(p_seed)
 	has_saved_game = true
+	run_started.emit()
 	_commit()
 
 
@@ -120,7 +127,7 @@ func is_event_filled(event_id: String) -> bool:
 
 
 ## Follows "branch" nodes (first option whose "if" passes) until it reaches a node with lines
-## or choices. Returns that node with its "id" added, or {} if the conversation ends.
+## or choices. Returns that node with its "id" and "dialogue" added, or {} if the conversation ends.
 func resolve_dialogue(dialogue_id: String, node_id: String) -> Dictionary:
 	var nodes: Dictionary = ContentDB.dialogues.get(dialogue_id, {})
 	for _hop in 32:
@@ -128,7 +135,7 @@ func resolve_dialogue(dialogue_id: String, node_id: String) -> Dictionary:
 			return {}
 		var node: Dictionary = nodes[node_id]
 		if not node.has("branch"):
-			return node.merged({"id": node_id})
+			return node.merged({"id": node_id, "dialogue": dialogue_id})
 		node_id = ""
 		for option in node.branch:
 			if check(option.get("if", "")):
@@ -155,6 +162,7 @@ func collect_echo(echo_id: String) -> bool:
 		return false
 	echoes.append(echo_id)
 	_commit()
+	echo_collected.emit(echo_id)
 	return true
 
 
@@ -177,10 +185,12 @@ func try_resolve(event_id: String) -> bool:
 	var slots: Dictionary = event.get("slots", {})
 	for slot in slots:
 		if placed.get(slot, "") != slots[slot]:
+			discovery_attempted.emit(event_id, false)
 			return false
 	discoveries.append(event_id)
 	_apply_effects(event.get("effects", {}))
 	_commit()
+	discovery_attempted.emit(event_id, true)
 	return true
 
 
@@ -189,15 +199,18 @@ func try_puzzle(puzzle_id: String, answer: String) -> bool:
 		return true
 	var puzzle: Dictionary = ContentDB.puzzles[puzzle_id]
 	if answer != str(vars.get(puzzle.get("solution_var", ""), "")):
+		puzzle_attempted.emit(puzzle_id, false)
 		return false
 	solved_puzzles.append(puzzle_id)
 	_apply_effects(puzzle.get("effects", {}))
 	_commit()
+	puzzle_attempted.emit(puzzle_id, true)
 	return true
 
 
 ## Applies a dialogue node's effects (e.g. "met this NPC") when the player reaches it.
 func enter_dialogue_node(node: Dictionary) -> void:
+	dialogue_node_entered.emit(node.get("dialogue", ""), node.get("id", ""))
 	var effects: Dictionary = node.get("effects", {})
 	if effects.is_empty():
 		return
