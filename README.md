@@ -41,6 +41,17 @@ godot --headless --path . -s res://tools/make_music.gd -- --out=/tmp/music
 for f in /tmp/music/*.wav; do ffmpeg -y -i "$f" -c:a libvorbis -q:a 4 "audio/$(basename "${f%.wav}").ogg"; done
 ```
 
+Gameplay trailer (records ~2 min, needs a window; then encodes a shareable MP4):
+
+```sh
+godot --path . --write-movie /tmp/trailer/frame.png --fixed-fps 30 res://tools/trailer.tscn
+ffmpeg -framerate 30 -i /tmp/trailer/frame%08d.png -i /tmp/trailer/frame.wav \
+  -af "loudnorm=I=-16:TP=-1.5:LRA=11" -ar 48000 -c:v libx264 -preset slow -tune animation -crf 18 \
+  -pix_fmt yuv420p -c:a aac -b:a 160k -movflags +faststart -shortest build/echoes-trailer.mp4
+```
+
+The shots, captions and end-card line are at the top of `tools/trailer.gd`.
+
 Screenshots of key moments (needs a window, so no `--headless`):
 
 ```sh
@@ -86,6 +97,7 @@ tools/
   screenshots.*     Renders key moments to PNG
   make_music.gd     Synthesises the music loops
   make_icon.*       Renders the launcher icons and boot splash into icons/ (needs a window, not --headless)
+  trailer.*         Scripted ~50 s gameplay trailer, recorded with Godot's Movie Maker
 art/                Final art goes here
 ```
 
