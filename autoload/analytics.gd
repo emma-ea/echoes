@@ -1,8 +1,9 @@
 extends Node
 ## Anonymous play analytics through GameAnalytics (addons/GameAnalytics), to learn where players
 ## get stuck. Sends only from release builds whose res://analytics_keys.json has keys (that file
-## is git-ignored; copy analytics_keys.example.json), and only while the player leaves
-## "Share play data" on. Players get a random ID, not a device or advertising ID.
+## is git-ignored; copy analytics_keys.example.json), and only after the player agrees: the title
+## screen asks once (CONSENT_TEXT), and the Menu can change it later. Nothing is sent before that.
+## Players get a random ID, not a device or advertising ID. PRIVACY.md describes all of this.
 ##
 ## What it sends (GameAnalytics needs nothing set up in advance for these):
 ##   progression  start/complete chapter_1, and start/complete chapter_1:<quest step id>;
@@ -24,10 +25,14 @@ const STATE_PATH := "user://analytics.cfg"    # step timers for the current run
 const GAME_SCENE := "res://scenes/main.tscn"
 const CHAPTER := "chapter_1"
 const SAVE_EVERY := 30.0  # seconds of play between saves of the timers
+const CONSENT_TEXT := "Help improve the game?\n\nIf you agree, the game sends anonymous play data to GameAnalytics: how far you get, how long each part takes, and your device's model and system version. No name, account or advertising ID.\n\nYou can change this at any time in the Menu."
 
-var share_play_data := true
-var active := false  # initialised and sending
+var available := false        # this build can send: SDK installed, keys present, release build
+var consent_asked := false    # the player has answered CONSENT_TEXT
+var share_play_data := false  # ...and said yes
+var active := false           # initialised and sending
 
+var _keys: Dictionary
 var _ga: Object      # the GameAnalytics singleton, once initialised
 var _step := ""      # quest step being timed
 var _step_seconds := 0.0
@@ -39,7 +44,11 @@ var _unsaved := 0.0
 func _ready() -> void:
 	var settings := ConfigFile.new()
 	if settings.load(SETTINGS_PATH) == OK:
-		share_play_data = settings.get_value("privacy", "share_play_data", true)
+		consent_asked = settings.get_value("privacy", "asked", false)
+		share_play_data = settings.get_value("privacy", "share_play_data", false)
+	_keys = _read_keys()
+	available = Engine.has_singleton("GameAnalytics") and not _keys.is_empty() \
+			and (not OS.is_debug_build() or _keys.get("send_from_debug_builds", false))
 	GameState.run_started.connect(_on_run_started)
 	GameState.changed.connect(_on_progress)
 	GameState.echo_collected.connect(func(echo_id: String): track("echo:" + echo_id))
@@ -51,10 +60,13 @@ func _ready() -> void:
 		_start()
 
 
+## The player's answer, from the title screen's question or the Menu.
 func set_share_play_data(value: bool) -> void:
+	consent_asked = true
 	share_play_data = value
 	var settings := ConfigFile.new()
 	settings.load(SETTINGS_PATH)
+	settings.set_value("privacy", "asked", true)
 	settings.set_value("privacy", "share_play_data", value)
 	settings.save(SETTINGS_PATH)
 	if _ga:
@@ -77,17 +89,15 @@ func track(event_id: String, value = null) -> void:
 
 
 func _start() -> void:
-	if not Engine.has_singleton("GameAnalytics"):
-		return
-	var keys := _read_keys()
-	if keys.is_empty() or (OS.is_debug_build() and not keys.get("send_from_debug_builds", false)):
+	if not available:
 		return
 	_ga = Engine.get_singleton("GameAnalytics")
 	_ga.setEnabledInfoLog(OS.is_debug_build())
 	_ga.setWritablePath(OS.get_user_data_dir())  # its event queue; on desktop it'd use ~/GameAnalytics
 	_ga.useRandomizedId(true)
+	_ga.setEnabledErrorReporting(true)  # crash/error reports (declared in PRIVACY.md)
 	_ga.configureBuild(BuildInfo.label().replace(" ", "-"))
-	_ga.init(keys.game_key, keys.secret_key)
+	_ga.init(_keys.game_key, _keys.secret_key)
 	active = true
 	_load_state()
 	_sync_step()

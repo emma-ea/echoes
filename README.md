@@ -64,7 +64,9 @@ Content problems also show up as red errors in the editor's Output panel every t
 Anonymous play data goes to [GameAnalytics](https://gameanalytics.com) (SDK in `addons/GameAnalytics`)
 so you can see where players get stuck: time on each objective, wrong deductions, which hints they ask
 Pell for. The full event list is at the top of `autoload/analytics.gd`. Players get a random ID, not a
-device or advertising ID, and can turn it off in the Menu (*Share anonymous play data*).
+device or advertising ID. Nothing is sent until the player agrees: the title screen asks once, and
+*Share play data* in the Menu changes it later. [PRIVACY.md](PRIVACY.md) is the privacy policy for
+Google Play, with the Data safety answers; update it if you change what's sent.
 
 1. Create a game in GameAnalytics and copy its **game key** and **secret key**.
 2. Copy `analytics_keys.example.json` to `analytics_keys.json` and paste them in. That file is

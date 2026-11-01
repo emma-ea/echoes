@@ -27,7 +27,7 @@
 - [x] **End-of-demo screen.** Shown once, a few seconds after the valve is reopened. Options: *Keep exploring*
   or *Main menu*, plus the build number.
   - [ ] **(you)** Once your feedback form exists, put its link in `data/world.json` → `demo_end.feedback_url`.
-    A *Share your feedback* button then appears on the end screen.
+	A *Share your feedback* button then appears on the end screen.
 - [x] **Version label** `0.1.0 playtest` on the title screen. It comes from the project version; change the
   word "playtest" in `scripts/ui/build_info.gd`.
 - [x] **Safe areas.** On phones, the top bar and tip card move in from notches and camera cutouts, and adjust
@@ -40,7 +40,8 @@
 - [x] Anonymous analytics through GameAnalytics (see README → Analytics). The game still plays fully
   offline; events wait and send later. Needs the `INTERNET` and `ACCESS_NETWORK_STATE` permissions
   (both set). No advertising ID: the build has no `AD_ID` permission, so answer "No" to Play's
-  advertising ID question. Players can turn it off in the Menu.
+  advertising ID question. Opt-in: the title screen asks once before anything is sent (GameAnalytics'
+  terms require consent first), and *Share play data* in the Menu changes it.
   - [ ] **(you)** Put your GameAnalytics keys in `analytics_keys.json` before exporting.
   - [ ] **(you)** A privacy policy (required by Google Play for apps that collect data), and the
     Play Console *Data safety* form. See section 8.
@@ -134,14 +135,14 @@ The game has only been run on desktop so far. Before sending:
 
 ## 8. Google Play: privacy (you)
 
-- [ ] **Privacy policy** at a public URL (a simple page is fine). Say that the game sends anonymous
-  gameplay events and device info (model, OS version) to GameAnalytics to improve the game, under a
-  random ID, with no account, name or advertising ID; that players can turn it off in the Menu; and
-  link GameAnalytics' own privacy policy. Put the URL in Play Console → *App content*.
-- [ ] **Data safety form**, based on what this build sends (check GameAnalytics' current Data
-  safety guidance too, in case it changes):
-  - Collected: *App activity → App interactions*; *App info and performance → Diagnostics*;
-    *Device or other IDs* (the random ID). Purpose: *Analytics*. Not shared (GameAnalytics is a
-    service provider), encrypted in transit, not required (players can turn it off).
-  - Not collected: name, email, location, contacts, purchases, advertising ID.
-- [ ] **Ads:** "No, my app does not contain ads". **Advertising ID:** not used.
+Everything is in [PRIVACY.md](PRIVACY.md): the privacy policy, the Data safety answers and the ads
+answers.
+
+- [x] Contact email in `PRIVACY.md`: support@oddlycodes.com.
+- [ ] **Privacy policy URL** in Play Console → *App content*: the GitHub link to `PRIVACY.md` on
+  `main`. The repository must stay public for Google and players to open it.
+- [ ] **Data safety form:** copy the answers from the *Google Play: Data safety answers* section.
+- [ ] **Ads:** *Contains ads* No; *Advertising ID* not used.
+- [ ] **Target audience:** choose 16 and over. The policy says the game isn't for children under 16,
+  and GameAnalytics needs parental consent for players under 16.
+- [ ] If you change what the game sends (`autoload/analytics.gd`), update `PRIVACY.md` and the form.

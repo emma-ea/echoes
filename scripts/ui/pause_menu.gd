@@ -23,8 +23,9 @@ func _ready() -> void:
 	_music_button = add_button("", _toggle_music)
 	_update_music_button()
 	content.add_child(VolumeControl.new())
-	_share_button = add_button("", _toggle_share)
-	_update_share_button()
+	if Analytics.available:
+		_share_button = add_button("", _toggle_share)
+		_update_share_button()
 	add_button("Restart from the beginning", _confirm_restart)
 	add_button("Main menu", _to_title)
 	if not OS.has_feature("mobile"):
@@ -52,7 +53,7 @@ func _toggle_share() -> void:
 
 
 func _update_share_button() -> void:
-	_share_button.text = "Share anonymous play data: " + ("On" if Analytics.share_play_data else "Off")
+	_share_button.text = "Share play data: " + ("On" if Analytics.share_play_data else "Off")
 
 
 func _confirm_restart() -> void:

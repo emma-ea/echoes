@@ -81,6 +81,13 @@ func _ready() -> void:
 	_ui.modulate.a = 0.0
 	create_tween().tween_property(_ui, "modulate:a", 1.0, 1.5)
 
+	# Ask once before any play data is sent (closing it without answering asks again next time).
+	if Analytics.available and not Analytics.consent_asked:
+		_dialog = ConfirmDialog.new()
+		_ui.add_child(_dialog)
+		_dialog.setup(Analytics.CONSENT_TEXT, "Share play data", Analytics.set_share_play_data.bind(true),
+				"No thanks", Analytics.set_share_play_data.bind(false))
+
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and not is_instance_valid(_dialog):
