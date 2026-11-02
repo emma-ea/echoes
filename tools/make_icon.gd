@@ -1,5 +1,6 @@
 extends Node
-## Renders the launcher icons and the boot splash from code into res://icons (or --out=folder).
+## Renders the launcher icons and the boot splash from code into res://icons (or --out=folder),
+## and the Google Play feature graphic into res://store (a folder Godot ignores, so it isn't exported).
 ## Run:  godot --path . res://tools/make_icon.tscn     (needs a window, not --headless)
 ##
 ## Art is drawn on a 1024 canvas at 2x and scaled down, so edges stay smooth at every size.
@@ -13,6 +14,8 @@ const SPLASH_SIZE := Vector2(1280, 720)
 ## Must match application/boot_splash/bg_color, so the splash has no visible edge on any screen shape.
 const SPLASH_BG := Color("070912")
 const SUPERSAMPLE := 2
+const FEATURE_SIZE := Vector2(1024, 500)  # Google Play's feature graphic: exactly this, no alpha
+const FEATURE_TAGLINE := "A hundred years ago, every lamp in the city went out."
 
 const NIGHT_TOP := Color("0b1024")
 const NIGHT_BOTTOM := Color("2c2342")
@@ -35,13 +38,16 @@ const OUTPUTS := [
 ]
 
 var _out_dir := ProjectSettings.globalize_path("res://icons")
+var _store_dir := ProjectSettings.globalize_path("res://store")
 
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="):
 			_out_dir = arg.trim_prefix("--out=")
+			_store_dir = _out_dir
 	DirAccess.make_dir_recursive_absolute(_out_dir)
+	DirAccess.make_dir_recursive_absolute(_store_dir)
 
 	var viewports := {}
 	for art in ["full", "background", "foreground", "monochrome"]:
@@ -67,6 +73,16 @@ func _ready() -> void:
 	splash.add_child(splash_canvas)
 	add_child(splash)
 
+	var feature := SubViewport.new()
+	feature.size = Vector2i(FEATURE_SIZE * SUPERSAMPLE)
+	feature.msaa_2d = Viewport.MSAA_4X
+	feature.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	var feature_canvas := Node2D.new()
+	feature_canvas.scale = Vector2.ONE * SUPERSAMPLE
+	feature_canvas.draw.connect(_draw_feature.bind(feature_canvas))
+	feature.add_child(feature_canvas)
+	add_child(feature)
+
 	for _i in 4:
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
@@ -86,6 +102,13 @@ func _ready() -> void:
 	var splash_path := _out_dir.path_join("boot_splash.png")
 	splash_image.save_png(splash_path)
 	print("saved ", splash_path)
+
+	var feature_image := feature.get_texture().get_image()
+	feature_image.resize(int(FEATURE_SIZE.x), int(FEATURE_SIZE.y), Image.INTERPOLATE_LANCZOS)
+	feature_image.convert(Image.FORMAT_RGB8)
+	var feature_path := _store_dir.path_join("feature_graphic.png")
+	feature_image.save_png(feature_path)
+	print("saved ", feature_path)
 	await Music.shut_down()
 	get_tree().quit()
 
@@ -116,6 +139,66 @@ func _draw_splash(c: CanvasItem) -> void:
 	c.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	c.draw_string(Fonts.DISPLAY, Vector2(0, 520), ContentDB.title, HORIZONTAL_ALIGNMENT_CENTER,
 		SPLASH_SIZE.x, 32, Color("ebe5d6"))
+
+
+# The Play Store banner: the title on the left; on the right the lantern over the rooftops of the
+# city, a few of its windows lit again. Kept clear of the edges, which Play may cover or crop.
+func _draw_feature(c: CanvasItem) -> void:
+	var size := FEATURE_SIZE
+	c.draw_polygon(
+		PackedVector2Array([Vector2.ZERO, Vector2(size.x, 0), size, Vector2(0, size.y)]),
+		PackedColorArray([NIGHT_TOP, NIGHT_TOP, NIGHT_BOTTOM, NIGHT_BOTTOM]))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	for _i in 90:
+		var star := Vector2(rng.randf_range(10, size.x - 10), rng.randf_range(10, 330))
+		c.draw_circle(star, rng.randf_range(0.8, 2.2), Color(1, 1, 1, rng.randf_range(0.2, 0.8)))
+	c.draw_circle(Vector2(612, 84), 24, Color("d8dcef"))
+	c.draw_circle(Vector2(621, 78), 22, Color("0f1430"))
+	var lantern_center := Vector2(800, 228)
+	for k in 60:
+		c.draw_circle(lantern_center + Vector2(0, 30), 330.0 - k * 4.6, Color(GLOW, 0.010))
+
+	# Rooftops along the bottom; windows nearer the lantern are more likely to be lit.
+	var x := -10.0
+	while x < size.x + 10:
+		var w := rng.randf_range(60, 130)
+		var h := rng.randf_range(70, 150)
+		var top := size.y - h
+		c.draw_rect(Rect2(x, top, w, h), ROOFS)
+		if rng.randf() < 0.5:
+			c.draw_colored_polygon(PackedVector2Array([Vector2(x, top), Vector2(x + w / 2, top - w * 0.35), Vector2(x + w, top)]), ROOFS)
+		var lit_chance := clampf(1.0 - absf(x + w / 2 - lantern_center.x) / 520.0, 0.04, 0.6)
+		var row_y := top + 16
+		while row_y < size.y - 18:
+			var col_x := x + 12
+			while col_x < x + w - 16:
+				if rng.randf() < lit_chance * 0.5:
+					for k in 6:
+						c.draw_circle(Vector2(col_x + 4, row_y + 6), 6.0 + k * 2.2, Color(GLOW, 0.03))
+					c.draw_rect(Rect2(col_x, row_y, 8, 12), GLASS)
+				col_x += 20
+			row_y += 26
+		x += w - 4
+	# The guildhall tower and its window.
+	c.draw_rect(Rect2(642, 250, 64, 250), ROOFS)
+	c.draw_colored_polygon(PackedVector2Array([Vector2(634, 250), Vector2(674, 186), Vector2(714, 250)]), ROOFS)
+	for k in 12:
+		c.draw_circle(Vector2(674, 292), 8.0 + k * 2.0, Color(GLOW, 0.03))
+	c.draw_rect(Rect2(668, 280, 12, 22), GLASS)
+
+	# The lantern art is centred on (512, 476) of the icon canvas.
+	var lantern_scale := 0.5
+	c.draw_set_transform(lantern_center - Vector2(512, 476) * lantern_scale, 0.0, Vector2.ONE * lantern_scale)
+	_draw_lantern(c, false)
+	c.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+	# The name (ContentDB.title, split over two lines) and the trailer's opening line.
+	var cream := Color("ebe5d6")
+	c.draw_string(Fonts.DISPLAY, Vector2(64, 150), "Echoes of the", HORIZONTAL_ALIGNMENT_LEFT, -1, 46, cream)
+	c.draw_string(Fonts.DISPLAY, Vector2(60, 236), "Forgotten City", HORIZONTAL_ALIGNMENT_LEFT, -1, 84, cream)
+	c.draw_string(Fonts.DISPLAY_ITALIC, Vector2(66, 292), FEATURE_TAGLINE, HORIZONTAL_ALIGNMENT_LEFT, 470, 22,
+		Color(1.0, 0.85, 0.55))
 
 
 func _draw_background(c: CanvasItem) -> void:

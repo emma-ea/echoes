@@ -52,6 +52,13 @@ ffmpeg -framerate 30 -i /tmp/trailer/frame%08d.png -i /tmp/trailer/frame.wav \
 
 The shots, captions and end-card line are at the top of `tools/trailer.gd`.
 
+Google Play screenshots: eight staged moments of real gameplay, without tutorial tips, into
+`store/screenshots/` (needs a window on a screen that fits 1920x1080):
+
+```sh
+godot --path . --resolution 1920x1080 res://tools/store_screenshots.tscn
+```
+
 Screenshots of key moments (needs a window, so no `--headless`):
 
 ```sh
@@ -120,8 +127,11 @@ tools/
   screenshots.*     Renders key moments to PNG
   make_music.gd     Synthesises the music loops
   make_icon.*       Renders the launcher icons and boot splash into icons/ (needs a window, not --headless)
+                    ...and the Google Play feature graphic into store/
   trailer.*         Scripted ~50 s gameplay trailer, recorded with Godot's Movie Maker
+  store_screenshots.*  Google Play phone screenshots (1920x1080) into store/screenshots/
 art/                Final art goes here
+store/              Store listing images (Godot ignores this folder, so they aren't in the game)
 ```
 
 Game rules live in `GameState`; UI only reads state and calls its methods. Every change saves to `user://save.json` (written to a temp file first, then renamed).
