@@ -341,8 +341,9 @@ func _test_title_and_intro() -> void:
 	for button in title._menu.get_children():
 		labels.append(button.text)
 	_expect(labels[0] == "Continue" and "New Game" in labels, "title menu offers Continue and New Game: %s" % [labels])
-	var build_labels: Array = title._ui.get_children().filter(func(c): return c is Label and c.text == "0.1.0 playtest")
-	_expect(build_labels.size() == 1, "the title screen shows the build: 0.1.0 playtest")
+	var build := "%s playtest" % ProjectSettings.get_setting("application/config/version")
+	var build_labels: Array = title._ui.get_children().filter(func(c): return c is Label and c.text == build)
+	_expect(build_labels.size() == 1, "the title screen shows the build: " + build)
 	title.queue_free()
 	Music.set_override("")
 

@@ -16,7 +16,8 @@
 - [x] **Platform:** Android first, by sending the APK file directly. iOS (TestFlight) and desktop builds come later if needed.
 - [x] **Package name:** `com.oddlycodes.echoesoftheforgottencity`. This is permanent once on the Play Store.
 - [x] **Launcher name:** Echoes of the Forgotten City
-- [x] **Version:** `0.1.0`, `version/code` 1. Raise `version/code` by 1 for every build you send.
+- [x] **Version:** `0.1.1`, `version/code` 2 (the first Play build; testers had `0.1.0`, code 1).
+  Raise `version/code` by 1 for every build you send or upload.
   Also set as the project version (`application/config/version`), so the game can show it.
 - [x] **Renderer:** Mobile (Vulkan). Godot's *Fallback to OpenGL 3* setting is on (the default), so phones
   without working Vulkan drop to OpenGL instead of showing a black screen. When testing on an older
@@ -70,10 +71,12 @@ The game has only been run on desktop so far. Before sending:
 3. **Gradle build:** on, and required: it adds the GameAnalytics Android library. The build template
    is installed in `android/` (git-ignored; reinstall with *Project → Install Android Build Template*
    on a fresh clone). The first export downloads dependencies, so it needs internet.
-   - **APK for testers:** *Export Format* APK with *Compress Native Libraries* on (~32 MB). This is
-     how the preset is set now.
-   - **AAB for Google Play:** set *Export Format* to AAB and turn *Compress Native Libraries* off
-     (Google recommends uncompressed; Play compresses the download itself).
+   - **AAB for Google Play:** *Export Format* AAB, *Compress Native Libraries* off (Google recommends
+     uncompressed; Play compresses the download itself). This is how the preset is set now:
+     `godot --headless --path . --export-release Android build/echoes-<version>.aab`
+   - **APK for testers:** set *Export Format* to APK and turn *Compress Native Libraries* on (~32 MB).
+   - **Minimum Android 10 (API 29):** Godot requires it for the Mobile renderer in Gradle builds.
+     Older phones would need the Compatibility renderer.
 4. **Signing:** Godot can sign with its debug keystore, which is fine for friends. For anything that
    might go to the Play Store later, make a release keystore once:
    ```sh
